@@ -64,7 +64,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'gradingsystem.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -85,7 +85,7 @@ STATICFILES_DIRS = [BASE_DIR / 'templates']
 
 STATIC_URL = '/static/'
 
-WSGI_APPLICATION = 'gradingsystem.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
