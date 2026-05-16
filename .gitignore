@@ -58,3 +58,6 @@ Thumbs.db
 .Spotlight-V100
 .Trashes
 ehthumbs.db
+
+db.sqlite3
+edutrack-guide.md
