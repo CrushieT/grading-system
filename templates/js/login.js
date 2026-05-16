@@ -1,223 +1,331 @@
-/* ============================================================
-   login.js — EduTrack Login Page Logic
-   Sections:
-   1. DOM References
-   2. Password Toggle
-   3. Form Validation
-   4. Form Submission (REST API)
-   5. Toast Notifications
-   6. Intro Overlay Cleanup
-   ============================================================ */
+/* ═══════════════════════════════════════════════
+   login.js — GradeDesk Auth Logic
+   Handles: view switching, form validation,
+            password visibility, step nav,
+            API stubs (wired to auth.js / api.js later)
+═══════════════════════════════════════════════ */
 
+// ── VIEW SWITCHING ──────────────────────────────
 
-/* ── 1. DOM REFERENCES ── */
-const loginForm     = document.getElementById('loginForm');
-const emailInput    = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const loginBtn      = document.getElementById('loginBtn');
-const btnText       = document.getElementById('btnText');
-const btnLoader     = document.getElementById('btnLoader');
-const btnArrow      = document.getElementById('btnArrow');
-const togglePassBtn = document.getElementById('togglePassword');
-const eyeIcon       = document.getElementById('eyeIcon');
-const emailError    = document.getElementById('email-error');
-const passwordError = document.getElementById('password-error');
-const toast         = document.getElementById('toast');
-const toastMsg      = document.getElementById('toastMsg');
-const introOverlay  = document.getElementById('intro-overlay');
+const viewLogin    = document.getElementById('view-login');
+const viewRegister = document.getElementById('view-register');
+const regFooter    = document.getElementById('reg-footer');
 
+function showLogin() {
+  viewLogin.hidden    = false;
+  viewRegister.hidden = true;
+  document.title = 'GradeDesk — Sign In';
+}
 
-/* ── 2. PASSWORD TOGGLE ── */
-togglePassBtn.addEventListener('click', () => {
-  const isPassword = passwordInput.type === 'password';
-  passwordInput.type = isPassword ? 'text' : 'password';
+function showRegister() {
+  viewLogin.hidden    = true;
+  viewRegister.hidden = false;
+  document.title = 'GradeDesk — Create Account';
+  goToStep(1); // always start at step 1
+}
 
-  // Swap icon: open eye ↔ slashed eye
-  eyeIcon.innerHTML = isPassword
-    ? /* eye-slash */`
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>`
-    : /* eye-open */`
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+document.getElementById('goto-register').addEventListener('click', showRegister);
+document.getElementById('goto-login').addEventListener('click', showLogin);
+document.getElementById('goto-login-final').addEventListener('click', showLogin);
+
+// ── PASSWORD TOGGLE ─────────────────────────────
+
+document.querySelectorAll('.eye-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.target);
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    // swap icon opacity as a simple visual hint
+    btn.style.opacity = isHidden ? '1' : '0.5';
+  });
 });
 
+// ── FIELD ERROR HELPERS ─────────────────────────
 
-/* ── 3. FORM VALIDATION ── */
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function setError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  // highlight the associated input (same form-group)
+  const input = el.closest('.form-group')?.querySelector('input, select');
+  if (input) input.classList.toggle('error', !!msg);
 }
 
-function clearErrors() {
-  emailError.classList.add('hidden');
-  passwordError.classList.add('hidden');
-  emailInput.style.borderColor = '';
-  passwordInput.style.borderColor = '';
+function clearError(id) { setError(id, ''); }
+
+function clearAllErrors(ids) { ids.forEach(clearError); }
+
+function showBanner(id, msgId, msg) {
+  const banner = document.getElementById(id);
+  const span   = document.getElementById(msgId);
+  if (!banner || !span) return;
+  span.textContent = msg;
+  banner.hidden = false;
 }
 
-function showFieldError(inputEl, errorEl, message) {
-  errorEl.textContent = message;
-  errorEl.classList.remove('hidden');
-  inputEl.style.borderColor = 'rgba(239,68,68,0.6)';
-  inputEl.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.1)';
-  inputEl.focus();
+function hideBanner(id) {
+  const el = document.getElementById(id);
+  if (el) el.hidden = true;
 }
 
-function validateForm() {
-  clearErrors();
+// ── INPUT LIVE CLEAR ────────────────────────────
+// Clears the error on a field the moment the user starts typing again.
+
+function attachLiveClear(inputId, errorId) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  el.addEventListener('input', () => clearError(errorId));
+}
+
+attachLiveClear('login-email',    'err-login-email');
+attachLiveClear('login-password', 'err-login-password');
+attachLiveClear('reg-fname',      'err-reg-fname');
+attachLiveClear('reg-lname',      'err-reg-lname');
+attachLiveClear('reg-email',      'err-reg-email');
+attachLiveClear('reg-password',   'err-reg-password');
+attachLiveClear('reg-confirm',    'err-reg-confirm');
+attachLiveClear('reg-school-name','err-reg-school');
+attachLiveClear('reg-year-start', 'err-reg-year-start');
+attachLiveClear('reg-year-end',   'err-reg-year-end');
+
+// ── VALIDATORS ──────────────────────────────────
+
+function isValidEmail(val) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+}
+
+function isEmpty(val) {
+  return val.trim() === '';
+}
+
+// ════════════════════════════════════════════════
+//  LOGIN
+// ════════════════════════════════════════════════
+
+const loginSubmit = document.getElementById('login-submit');
+
+loginSubmit.addEventListener('click', async () => {
+  hideBanner('login-banner');
+
+  const email    = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+
   let valid = true;
 
-  if (!emailInput.value.trim()) {
-    showFieldError(emailInput, emailError, 'Email is required.');
+  if (isEmpty(email)) {
+    setError('err-login-email', 'Email is required.');
     valid = false;
-  } else if (!isValidEmail(emailInput.value.trim())) {
-    showFieldError(emailInput, emailError, 'Please enter a valid email address.');
+  } else if (!isValidEmail(email)) {
+    setError('err-login-email', 'Enter a valid email address.');
     valid = false;
+  } else {
+    clearError('err-login-email');
   }
 
-  if (!passwordInput.value) {
-    showFieldError(passwordInput, passwordError, 'Password is required.');
+  if (isEmpty(password)) {
+    setError('err-login-password', 'Password is required.');
     valid = false;
-  } else if (passwordInput.value.length < 6) {
-    showFieldError(passwordInput, passwordError, 'Password must be at least 6 characters.');
-    valid = false;
+  } else {
+    clearError('err-login-password');
   }
 
-  return valid;
-}
+  if (!valid) return;
 
-// Live clear errors on input
-emailInput.addEventListener('input',    () => { emailError.classList.add('hidden');    emailInput.style.borderColor    = ''; emailInput.style.boxShadow    = ''; });
-passwordInput.addEventListener('input', () => { passwordError.classList.add('hidden'); passwordInput.style.borderColor = ''; passwordInput.style.boxShadow = ''; });
-
-
-/* ── 4. FORM SUBMISSION ── */
-const API_BASE = '/api';  // Change to your Django server URL if needed
-
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
-
-  setLoading(true);
+  // ── Loading state ──
+  setButtonLoading(loginSubmit, true);
 
   try {
-    const response = await fetch(`${API_BASE}/auth/login/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email:    emailInput.value.trim(),
-        password: passwordInput.value,
-      }),
-    });
+    // ┌─────────────────────────────────────────────────┐
+    // │  API STUB — replace with real call in auth.js   │
+    // │                                                 │
+    // │  const res = await api.login(email, password);  │
+    // │  // stores JWT, then:                           │
+    // │  window.location.href = '/dashboard.html';      │
+    // └─────────────────────────────────────────────────┘
 
-    const data = await response.json();
+    await fakeDelay(1200); // remove when real API is wired
 
-    if (response.ok) {
-      // Store token (JWT or session)
-      if (data.token)         localStorage.setItem('auth_token', data.token);
-      if (data.access)        localStorage.setItem('auth_token', data.access);
-      if (data.refresh)       localStorage.setItem('refresh_token', data.refresh);
-
-      // Success state on button
-      btnText.textContent = 'Success!';
-      loginBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
-      loginBtn.style.boxShadow  = '0 4px 20px rgba(16,185,129,0.4)';
-
-      // Redirect after short delay
-      setTimeout(() => {
-        window.location.href = '/dashboard/';
-      }, 800);
-
+    // Demo: treat "admin@school.edu" / "password" as valid
+    if (email === 'admin@school.edu' && password === 'password') {
+      window.location.href = '/index.html';
     } else {
-      setLoading(false);
-
-      // Django REST common error shapes
-      const msg =
-        data.detail             ||
-        data.non_field_errors?.[0] ||
-        data.message            ||
-        'Invalid email or password.';
-
-      showToast(msg, 'error');
-
-      // Shake the form card
-      const card = document.querySelector('.form-card');
-      card.style.animation = 'none';
-      void card.offsetWidth; // reflow
-      card.style.animation = 'shakeCard 0.4s ease';
+      showBanner('login-banner', 'login-banner-msg', 'Invalid email or password.');
     }
 
   } catch (err) {
-    setLoading(false);
-    showToast('Could not connect to the server. Please try again.', 'error');
-    console.error('[EduTrack] Login error:', err);
+    showBanner('login-banner', 'login-banner-msg', 'Could not connect. Try again.');
+  } finally {
+    setButtonLoading(loginSubmit, false);
   }
 });
 
-
-/* ── 5. LOADING STATE HELPERS ── */
-function setLoading(isLoading) {
-  loginBtn.disabled = isLoading;
-
-  if (isLoading) {
-    btnText.textContent = 'Signing in';
-    btnArrow.classList.add('hidden');
-    btnLoader.classList.remove('hidden');
-  } else {
-    btnText.textContent = 'Sign In';
-    btnArrow.classList.remove('hidden');
-    btnLoader.classList.add('hidden');
-  }
-}
-
-
-/* ── 6. TOAST NOTIFICATIONS ── */
-let toastTimeout = null;
-
-function showToast(message, type = 'error') {
-  toastMsg.textContent = message;
-
-  if (type === 'error') {
-    toast.style.background  = 'rgba(239,68,68,0.12)';
-    toast.style.borderColor = 'rgba(239,68,68,0.3)';
-    toast.style.color       = '#fca5a5';
-  } else {
-    toast.style.background  = 'rgba(16,185,129,0.12)';
-    toast.style.borderColor = 'rgba(16,185,129,0.3)';
-    toast.style.color       = '#6ee7b7';
-  }
-
-  toast.classList.remove('hidden');
-  // Trigger reflow so transition plays
-  void toast.offsetWidth;
-  toast.classList.add('show');
-
-  if (toastTimeout) clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.classList.add('hidden'), 300);
-  }, 3500);
-}
-
-
-/* ── 7. INTRO OVERLAY CLEANUP ── */
-// Remove from DOM after animation to free memory
-introOverlay.addEventListener('animationend', () => {
-  introOverlay.remove();
+// Also allow Enter key on password field
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loginSubmit.click();
 });
 
+// ════════════════════════════════════════════════
+//  REGISTRATION — STEP NAVIGATION
+// ════════════════════════════════════════════════
 
-/* ── CSS INJECTION: shake keyframe ── */
-const shakeStyle = document.createElement('style');
-shakeStyle.textContent = `
-  @keyframes shakeCard {
-    0%,100% { transform: translateX(0); }
-    20%      { transform: translateX(-8px); }
-    40%      { transform: translateX(8px); }
-    60%      { transform: translateX(-5px); }
-    80%      { transform: translateX(5px); }
+const regStep1 = document.getElementById('reg-step-1');
+const regStep2 = document.getElementById('reg-step-2');
+const regStep3 = document.getElementById('reg-step-3');
+
+function goToStep(n) {
+  regStep1.hidden = n !== 1;
+  regStep2.hidden = n !== 2;
+  regStep3.hidden = n !== 3;
+  regFooter.hidden = n === 3;
+  updateStepDots(n);
+}
+
+function updateStepDots(n) {
+  const dots  = [
+    document.getElementById('step-dot-1'),
+    document.getElementById('step-dot-2'),
+    document.getElementById('step-dot-3'),
+  ];
+  const lines = document.querySelectorAll('.step-line');
+
+  dots.forEach((dot, i) => {
+    dot.classList.remove('active', 'done');
+    if (i + 1 < n)  dot.classList.add('done');
+    if (i + 1 === n) dot.classList.add('active');
+  });
+
+  lines.forEach((line, i) => {
+    line.classList.toggle('done', i + 1 < n);
+  });
+}
+
+// ── Step 1 → 2: Validate account fields ──
+
+document.getElementById('reg-next-1').addEventListener('click', () => {
+  const fname    = document.getElementById('reg-fname').value;
+  const lname    = document.getElementById('reg-lname').value;
+  const email    = document.getElementById('reg-email').value;
+  const password = document.getElementById('reg-password').value;
+  const confirm  = document.getElementById('reg-confirm').value;
+
+  let valid = true;
+
+  if (isEmpty(fname)) {
+    setError('err-reg-fname', 'Required.'); valid = false;
+  } else { clearError('err-reg-fname'); }
+
+  if (isEmpty(lname)) {
+    setError('err-reg-lname', 'Required.'); valid = false;
+  } else { clearError('err-reg-lname'); }
+
+  if (isEmpty(email)) {
+    setError('err-reg-email', 'Email is required.'); valid = false;
+  } else if (!isValidEmail(email)) {
+    setError('err-reg-email', 'Enter a valid email address.'); valid = false;
+  } else { clearError('err-reg-email'); }
+
+  if (password.length < 8) {
+    setError('err-reg-password', 'Must be at least 8 characters.'); valid = false;
+  } else { clearError('err-reg-password'); }
+
+  if (isEmpty(confirm)) {
+    setError('err-reg-confirm', 'Please confirm your password.'); valid = false;
+  } else if (confirm !== password) {
+    setError('err-reg-confirm', 'Passwords do not match.'); valid = false;
+  } else { clearError('err-reg-confirm'); }
+
+  if (valid) goToStep(2);
+});
+
+// ── Step 2 → Back ──
+
+document.getElementById('reg-back-1').addEventListener('click', () => {
+  goToStep(1);
+});
+
+// ── Step 2 → Submit ──
+
+const regNext2 = document.getElementById('reg-next-2');
+
+regNext2.addEventListener('click', async () => {
+  hideBanner('reg-banner');
+
+  const school    = document.getElementById('reg-school-name').value;
+  const yearStart = parseInt(document.getElementById('reg-year-start').value, 10);
+  const yearEnd   = parseInt(document.getElementById('reg-year-end').value, 10);
+  const semester  = document.getElementById('reg-semester').value;
+
+  let valid = true;
+
+  if (isEmpty(school)) {
+    setError('err-reg-school', 'School name is required.'); valid = false;
+  } else { clearError('err-reg-school'); }
+
+  if (!yearStart || yearStart < 2000) {
+    setError('err-reg-year-start', 'Enter a valid year.'); valid = false;
+  } else { clearError('err-reg-year-start'); }
+
+  if (!yearEnd || yearEnd <= yearStart) {
+    setError('err-reg-year-end', 'Must be after start year.'); valid = false;
+  } else { clearError('err-reg-year-end'); }
+
+  if (!semester) {
+    setError('err-reg-sem', 'Select a semester.'); valid = false;
+  } else { clearError('err-reg-sem'); }
+
+  if (!valid) return;
+
+  setButtonLoading(regNext2, true);
+
+  try {
+    // ┌─────────────────────────────────────────────────────────────┐
+    // │  API STUB — replace with real calls in api.js               │
+    // │                                                             │
+    // │  Step A: POST /api/auth/register/ → creates user + JWT      │
+    // │  Step B: POST /api/school-years/  → { year_start, year_end }│
+    // │  Step C: POST /api/school-year-semesters/ → links both      │
+    // │  Step D: POST /api/grade-templates/ → chosen template       │
+    // └─────────────────────────────────────────────────────────────┘
+
+    await fakeDelay(1400); // remove when real API is wired
+
+    const fname = document.getElementById('reg-fname').value.trim();
+    const lname = document.getElementById('reg-lname').value.trim();
+    document.getElementById('success-sub').innerHTML =
+      `Account created for <strong>${fname} ${lname}</strong>.<br>You can now sign in with your email and password.`;
+
+    goToStep(3);
+
+  } catch (err) {
+    showBanner('reg-banner', 'reg-banner-msg', 'Registration failed. Please try again.');
+  } finally {
+    setButtonLoading(regNext2, false);
   }
-`;
-document.head.appendChild(shakeStyle);
+});
+
+// ════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════
+
+function setButtonLoading(btn, loading) {
+  const label   = btn.querySelector('.btn-label');
+  const spinner = btn.querySelector('.btn-spinner');
+  btn.disabled  = loading;
+  if (label)   label.hidden = loading;
+  if (spinner) spinner.hidden = !loading;
+}
+
+function fakeDelay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ── INIT: check hash for deep-link to register ──
+// Allows linking directly to login.html#register for the first-boot prompt.
+
+(function init() {
+  if (window.location.hash === '#register') {
+    showRegister();
+  } else {
+    showLogin();
+  }
+})();
