@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduTrack — Login</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Heroicons -->
+  <script src="https://unpkg.com/@heroicons/react@2.0.18/dist/outline/index.js" type="module"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="login.css" />
+
+  <!-- Tailwind Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50:  '#eef5ff',
+              100: '#d9e8ff',
+              200: '#bcd4ff',
+              300: '#8eb8ff',
+              400: '#5990ff',
+              500: '#3366ff',
+              600: '#1a44f5',
+              700: '#1432e1',
+              800: '#1729b6',
+              900: '#19278f',
+              950: '#131a57',
+            },
+          },
+        },
+      },
+    }
+  </script>
+</head>
+
+<body class="font-body bg-[#0a0f1e] text-white overflow-hidden">
+
+  <!-- ░░ INTRO ANIMATION OVERLAY ░░ -->
+  <div id="intro-overlay" class="intro-overlay">
+    <div class="intro-logo-wrap">
+      <div class="intro-ring ring-1"></div>
+      <div class="intro-ring ring-2"></div>
+      <div class="intro-ring ring-3"></div>
+      <div class="intro-icon">
+        <!-- Graduation cap SVG -->
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-10 h-10">
+          <path d="M32 8L4 22l28 14 28-14L32 8Z" fill="#3366ff" stroke="#5990ff" stroke-width="1.5"/>
+          <path d="M12 29v14c0 4 9 9 20 9s20-5 20-9V29" stroke="#5990ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M56 22v14" stroke="#8eb8ff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="56" cy="38" r="2.5" fill="#3366ff"/>
+        </svg>
+      </div>
+    </div>
+    <p class="intro-brand-text font-display">EduTrack</p>
+    <p class="intro-sub-text font-body">Schedule & Grading System</p>
+  </div>
+
+  <!-- ░░ MAIN CONTENT ░░ -->
+  <div id="main-content" class="main-content min-h-screen flex">
+
+    <!-- LEFT PANEL — Branding -->
+    <div class="left-panel hidden lg:flex flex-col justify-between p-14 w-[52%] relative overflow-hidden">
+
+      <!-- Background mesh -->
+      <div class="mesh-bg"></div>
+      <div class="grid-overlay"></div>
+
+      <!-- Floating orbs -->
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+
+      <!-- Top brand -->
+      <div class="relative z-10 flex items-center gap-3 brand-enter">
+        <div class="brand-icon-wrap">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7">
+            <path d="M32 8L4 22l28 14 28-14L32 8Z" fill="#3366ff" stroke="#5990ff" stroke-width="1.5"/>
+            <path d="M12 29v14c0 4 9 9 20 9s20-5 20-9V29" stroke="#5990ff" stroke-width="2" stroke-linecap="round"/>
+            <path d="M56 22v14" stroke="#8eb8ff" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="56" cy="38" r="2.5" fill="#3366ff"/>
+          </svg>
+        </div>
+        <span class="font-display font-bold text-xl tracking-wide text-white">EduTrack</span>
+      </div>
+
+      <!-- Center headline -->
+      <div class="relative z-10">
+        <div class="headline-enter">
+          <p class="text-brand-400 font-display text-sm tracking-[0.25em] uppercase mb-4">For Educators</p>
+          <h1 class="font-display font-extrabold text-5xl xl:text-6xl leading-[1.1] text-white mb-6">
+            Smarter<br/>
+            <span class="text-gradient">Grading.</span><br/>
+            Better<br/>
+            <span class="text-gradient">Teaching.</span>
+          </h1>
+          <p class="text-slate-400 font-body font-light text-lg max-w-xs leading-relaxed">
+            Manage schedules, track attendance, and compute grades — all in one place.
+          </p>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="mt-10 flex gap-4 stats-enter">
+          <div class="stat-card">
+            <span class="stat-num font-display">98%</span>
+            <span class="stat-label font-body">Accuracy</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num font-display">3x</span>
+            <span class="stat-label font-body">Faster Grading</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num font-display">∞</span>
+            <span class="stat-label font-body">Students</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom -->
+      <div class="relative z-10 bottom-enter">
+        <p class="text-slate-600 text-xs font-body">© 2025 EduTrack · College Project</p>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL — Login Form -->
+    <div class="right-panel flex-1 flex items-center justify-center p-8 relative">
+
+      <div class="form-card w-full max-w-md form-enter">
+
+        <!-- Mobile brand -->
+        <div class="lg:hidden flex items-center gap-2 mb-8">
+          <div class="brand-icon-wrap-sm">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5">
+              <path d="M32 8L4 22l28 14 28-14L32 8Z" fill="#3366ff" stroke="#5990ff" stroke-width="1.5"/>
+              <path d="M12 29v14c0 4 9 9 20 9s20-5 20-9V29" stroke="#5990ff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="font-display font-bold text-lg text-white">EduTrack</span>
+        </div>
+
+        <!-- Heading -->
+        <div class="mb-8">
+          <h2 class="font-display font-bold text-3xl text-white mb-2">Welcome back</h2>
+          <p class="text-slate-400 font-body text-sm">Sign in to your teacher account to continue.</p>
+        </div>
+
+        <!-- Form -->
+        <form id="loginForm" class="space-y-5" novalidate>
+
+          <!-- Email Field -->
+          <div class="field-group">
+            <label for="email" class="field-label font-body">Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </span>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@school.edu"
+                class="form-input font-body"
+                autocomplete="email"
+              />
+            </div>
+            <p class="field-error hidden" id="email-error">Please enter a valid email.</p>
+          </div>
+
+          <!-- Password Field -->
+          <div class="field-group">
+            <label for="password" class="field-label font-body">Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </span>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="••••••••"
+                class="form-input font-body"
+                autocomplete="current-password"
+              />
+              <button type="button" id="togglePassword" class="toggle-pass-btn" aria-label="Toggle password">
+                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+            </div>
+            <p class="field-error hidden" id="password-error">Password is required.</p>
+          </div>
+
+          <!-- Remember + Forgot -->
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" id="remember" class="custom-checkbox" />
+              <span class="text-slate-400 text-xs font-body group-hover:text-slate-300 transition-colors">Remember me</span>
+            </label>
+            <a href="#" class="text-brand-400 text-xs font-body hover:text-brand-300 transition-colors underline underline-offset-4">Forgot password?</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="loginBtn" class="login-btn font-display w-full">
+            <span id="btnText">Sign In</span>
+            <span id="btnLoader" class="btn-loader hidden"></span>
+            <svg id="btnArrow" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-3 my-2">
+            <div class="flex-1 h-px bg-white/10"></div>
+            <span class="text-slate-600 text-xs font-body">or</span>
+            <div class="flex-1 h-px bg-white/10"></div>
+          </div>
+
+          <!-- SSO / Admin note -->
+          <p class="text-center text-slate-500 text-xs font-body">
+            Are you an admin?
+            <a href="#" class="text-brand-400 hover:text-brand-300 transition-colors font-medium">Access admin panel →</a>
+          </p>
+
+        </form>
+
+        <!-- Toast notification -->
+        <div id="toast" class="toast hidden font-body">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+          <span id="toastMsg">Invalid credentials.</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
