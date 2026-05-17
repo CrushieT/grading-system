@@ -192,6 +192,86 @@ function closeLogoutModal() {
   if (modal) modal.hidden = true;
 }
 
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.hidden = false;
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.hidden = true;
+}
+
+function openStudentView(name, initials, color, avg, attendance, schedules) {
+  const avatar = document.getElementById("sv-avatar");
+  const initialsEl = document.getElementById("sv-initials");
+  const nameEl = document.getElementById("sv-name");
+  const schedulesEl = document.getElementById("sv-schedules");
+  const avgEl = document.getElementById("sv-avg");
+  const attEl = document.getElementById("sv-att-pct");
+  const attEl2 = document.getElementById("sv-att-pct2");
+  const attBar = document.getElementById("sv-att-bar");
+
+  if (avatar && color) avatar.style.background = color;
+  if (initialsEl) initialsEl.textContent = initials || "TA";
+  if (nameEl) nameEl.textContent = name || "Student";
+  if (schedulesEl) schedulesEl.textContent = schedules || "0 schedules";
+  if (avgEl) avgEl.textContent = avg || "0.0";
+  if (attEl) attEl.textContent = attendance || "0%";
+  if (attEl2) attEl2.textContent = attendance || "0%";
+  if (attBar) attBar.style.width = attendance || "0%";
+
+  openModal("modal-student-view");
+}
+
+function openScoresModal(assessment, maxScore) {
+  const title = document.getElementById("scores-modal-title");
+  const maxLabel = document.getElementById("scores-max-label");
+  const maxCols = document.querySelectorAll(".score-max-col");
+  const scoreInputs = document.querySelectorAll(".score-input");
+
+  if (title) title.textContent = `Scores - ${assessment || "Assessment"}`;
+  if (maxLabel) maxLabel.textContent = `Max Score: ${maxScore || 50}`;
+  maxCols.forEach(el => {
+    el.textContent = `/${maxScore || 50}`;
+  });
+  scoreInputs.forEach(input => {
+    input.max = String(maxScore || 50);
+  });
+
+  openModal("modal-scores");
+}
+
+function setAtt(button, state) {
+  const parent = button.closest(".att-status");
+  if (!parent) return;
+
+  parent.querySelectorAll(".att-btn").forEach(attBtn => {
+    attBtn.classList.remove("active-p", "active-a", "active-l", "active-e");
+  });
+  button.classList.add(`active-${state}`);
+}
+
+function switchTab(tabId, tabButton) {
+  document.querySelectorAll(".tab-panel").forEach(panel => {
+    panel.classList.toggle("active", panel.id === tabId);
+  });
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.classList.toggle("active", tab === tabButton);
+  });
+}
+
+function updateWeightTotal() {
+  const inputs = document.querySelectorAll("#modal-template input[data-action='update-weight-total']");
+  const totalEl = document.getElementById("weight-total-val");
+  const total = Array.from(inputs).reduce((sum, input) => sum + (parseInt(input.value || "0", 10) || 0), 0);
+
+  if (!totalEl) return;
+  totalEl.textContent = `${total}%`;
+  totalEl.classList.toggle("value-red", total !== 100);
+  totalEl.classList.toggle("value-green", total === 100);
+}
+
 async function performLogout() {
   const confirmButton = document.getElementById("confirm-logout-btn");
   if (confirmButton) confirmButton.disabled = true;
@@ -243,10 +323,57 @@ function setupUIEvents() {
     confirmLogout.addEventListener("click", performLogout);
   }
 
+  document.addEventListener("click", event => {
+    const actionEl = event.target.closest("[data-action]");
+    if (!actionEl) return;
+
+    const { action } = actionEl.dataset;
+    if (action === "open-modal") {
+      openModal(actionEl.dataset.modalTarget);
+    }
+    if (action === "close-modal") {
+      closeModal(actionEl.dataset.modalTarget);
+    }
+    if (action === "open-scores") {
+      openScoresModal(actionEl.dataset.assessment, parseInt(actionEl.dataset.maxScore || "50", 10));
+    }
+    if (action === "open-student-view") {
+      openStudentView(
+        actionEl.dataset.name,
+        actionEl.dataset.initials,
+        actionEl.dataset.color,
+        actionEl.dataset.avg,
+        actionEl.dataset.attendance,
+        actionEl.dataset.schedules
+      );
+    }
+    if (action === "set-att") {
+      setAtt(actionEl, actionEl.dataset.attState);
+    }
+    if (action === "switch-tab") {
+      switchTab(actionEl.dataset.tabTarget, actionEl);
+    }
+  });
+
+  document.querySelectorAll(".modal-overlay").forEach(modal => {
+    modal.addEventListener("click", event => {
+      if (event.target !== modal) return;
+      if (modal.id === "logout-modal") return;
+      modal.hidden = true;
+    });
+  });
+
+  document.querySelectorAll("#modal-template input[data-action='update-weight-total']").forEach(input => {
+    input.addEventListener("input", updateWeightTotal);
+  });
+
   document.addEventListener("keydown", event => {
     if (event.key === "Escape") {
       closeLogoutModal();
       closeSidebar();
+      document.querySelectorAll(".modal-overlay").forEach(modal => {
+        if (modal.id !== "logout-modal") modal.hidden = true;
+      });
     }
   });
 }
@@ -285,6 +412,7 @@ function setupBackForwardProtection() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   setupUIEvents();
+  updateWeightTotal();
   setupBackForwardProtection();
   await guardDashboard();
 });
