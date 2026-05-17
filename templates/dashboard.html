@@ -1,22 +1,30 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeDesk — Teacher Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link href="/static/css/styles.css" rel="stylesheet" />
+    <title>GradeDesk - Teacher Portal</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   </head>
-  <body>
+  <body class="dashboard-body is-loading-auth">
+    <div class="auth-overlay" id="auth-overlay" aria-live="polite">
+      <div class="auth-spinner" aria-hidden="true"></div>
+      <p class="auth-overlay-text">Checking session...</p>
+    </div>
 
-    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay" data-action="close-sidebar"></div>
 
-    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
         <div class="brand-logo">
           <div class="brand-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="9" y2="9"/></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5">
+              <rect x="2" y="2" width="12" height="12" rx="2"></rect>
+              <line x1="5" y1="6" x2="11" y2="6"></line>
+              <line x1="5" y1="9" x2="9" y2="9"></line>
+            </svg>
           </div>
           <div>
             <div class="brand-name">GradeDesk</div>
@@ -24,442 +32,334 @@
           </div>
         </div>
       </div>
+
       <div class="sidebar-section">
         <div class="sidebar-section-label">Overview</div>
-        <div class="nav-item active" onclick="showPage('dashboard',this)">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        <button type="button" class="nav-item active" data-page-target="dashboard">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="5" height="5" rx="1"></rect>
+            <rect x="9" y="2" width="5" height="5" rx="1"></rect>
+            <rect x="2" y="9" width="5" height="5" rx="1"></rect>
+            <rect x="9" y="9" width="5" height="5" rx="1"></rect>
+          </svg>
           Dashboard
-        </div>
+        </button>
       </div>
+
       <div class="sidebar-section">
         <div class="sidebar-section-label">Academic</div>
-        <div class="nav-item" onclick="showPage('schedules',this)">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><line x1="5" y1="1.5" x2="5" y2="4.5"/><line x1="11" y1="1.5" x2="11" y2="4.5"/><line x1="2" y1="7" x2="14" y2="7"/></svg>
+        <button type="button" class="nav-item" data-page-target="schedules">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="3" width="12" height="11" rx="1.5"></rect>
+            <line x1="5" y1="1.5" x2="5" y2="4.5"></line>
+            <line x1="11" y1="1.5" x2="11" y2="4.5"></line>
+            <line x1="2" y1="7" x2="14" y2="7"></line>
+          </svg>
           Schedules
-        </div>
-        <div class="nav-item" onclick="showPage('students',this)">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="2.5"/><path d="M3 13c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>
+        </button>
+        <button type="button" class="nav-item" data-page-target="students">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="5" r="2.5"></circle>
+            <path d="M3 13c0-2.8 2.2-5 5-5s5 2.2 5 5"></path>
+          </svg>
           Students
-        </div>
-        <div class="nav-item" onclick="showPage('assessments',this)">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h8a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><line x1="5.5" y1="6" x2="10.5" y2="6"/><line x1="5.5" y1="9" x2="8.5" y2="9"/></svg>
+        </button>
+        <button type="button" class="nav-item" data-page-target="assessments">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 2h8a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"></path>
+            <line x1="5.5" y1="6" x2="10.5" y2="6"></line>
+            <line x1="5.5" y1="9" x2="8.5" y2="9"></line>
+          </svg>
           Assessments
-        </div>
-        <div class="nav-item" onclick="showPage('attendance',this)">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><polyline points="8,4.5 8,8 10.5,10"/></svg>
+        </button>
+        <button type="button" class="nav-item" data-page-target="attendance">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="6"></circle>
+            <polyline points="8,4.5 8,8 10.5,10"></polyline>
+          </svg>
           Attendance
-        </div>
-        <div class="nav-item" onclick="showPage('grades',this)">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,12 5,7 8,9 11,4 14,6"/><line x1="2" y1="14" x2="14" y2="14"/></svg>
+        </button>
+        <button type="button" class="nav-item" data-page-target="grades">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="2,12 5,7 8,9 11,4 14,6"></polyline>
+            <line x1="2" y1="14" x2="14" y2="14"></line>
+          </svg>
           Grades
-        </div>
+        </button>
       </div>
+
       <div class="sidebar-section">
         <div class="sidebar-section-label">Configuration</div>
-        <div class="nav-item" onclick="showPage('setup',this)">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 2v1.5M8 12.5V14M14 8h-1.5M3.5 8H2M12.2 3.8l-1.1 1.1M4.9 11.1l-1.1 1.1M12.2 12.2l-1.1-1.1M4.9 4.9L3.8 3.8"/></svg>
+        <button type="button" class="nav-item" data-page-target="setup">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="2"></circle>
+            <path d="M8 2v1.5M8 12.5V14M14 8h-1.5M3.5 8H2M12.2 3.8l-1.1 1.1M4.9 11.1l-1.1 1.1M12.2 12.2l-1.1-1.1M4.9 4.9L3.8 3.8"></path>
+          </svg>
           School Setup
-        </div>
-        <div class="nav-item" onclick="showPage('settings',this)">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M13.5 6.9l-.8-.2a4.8 4.8 0 0 0-.5-1.1l.5-.7a.5.5 0 0 0-.1-.6l-1-1a.5.5 0 0 0-.6-.1l-.7.4a4.8 4.8 0 0 0-1.2-.5l-.2-.8A.5.5 0 0 0 8.4 2H7.6a.5.5 0 0 0-.5.4l-.2.8a4.8 4.8 0 0 0-1.2.5l-.7-.4a.5.5 0 0 0-.6.1l-1 1a.5.5 0 0 0-.1.6l.5.7a4.8 4.8 0 0 0-.5 1.1l-.8.2A.5.5 0 0 0 2 7.6v.8a.5.5 0 0 0 .4.5l.8.2a4.8 4.8 0 0 0 .5 1.1l-.5.7a.5.5 0 0 0 .1.6l1 1a.5.5 0 0 0 .6.1l.7-.4a4.8 4.8 0 0 0 1.2.5l.2.8a.5.5 0 0 0 .5.4h.8a.5.5 0 0 0 .5-.4l.2-.8a4.8 4.8 0 0 0 1.2-.5l.7.4a.5.5 0 0 0 .6-.1l1-1a.5.5 0 0 0 .1-.6l-.5-.7a4.8 4.8 0 0 0 .5-1.1l.8-.2a.5.5 0 0 0 .4-.5v-.8a.5.5 0 0 0-.4-.5z"/></svg>
+        </button>
+        <button type="button" class="nav-item" data-page-target="settings">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="2.5"></circle>
+            <path d="M13.5 6.9l-.8-.2a4.8 4.8 0 0 0-.5-1.1l.5-.7a.5.5 0 0 0-.1-.6l-1-1a.5.5 0 0 0-.6-.1l-.7.4a4.8 4.8 0 0 0-1.2-.5l-.2-.8A.5.5 0 0 0 8.4 2H7.6a.5.5 0 0 0-.5.4l-.2.8a4.8 4.8 0 0 0-1.2.5l-.7-.4a.5.5 0 0 0-.6.1l-1 1a.5.5 0 0 0-.1.6l.5.7a4.8 4.8 0 0 0-.5 1.1l-.8.2A.5.5 0 0 0 2 7.6v.8a.5.5 0 0 0 .4.5l.8.2a4.8 4.8 0 0 0 .5 1.1l-.5.7a.5.5 0 0 0 .1.6l1 1a.5.5 0 0 0 .6.1l.7-.4a4.8 4.8 0 0 0 1.2.5l.2.8a.5.5 0 0 0 .5.4h.8a.5.5 0 0 0 .5-.4l.2-.8a4.8 4.8 0 0 0 1.2-.5l.7.4a.5.5 0 0 0 .6-.1l1-1a.5.5 0 0 0 .1-.6l-.5-.7a4.8 4.8 0 0 0 .5-1.1l.8-.2a.5.5 0 0 0 .4-.5v-.8a.5.5 0 0 0-.4-.5z"></path>
+          </svg>
           Settings
-        </div>
+        </button>
       </div>
+
       <div class="sidebar-footer">
-        <div class="nav-item" style="cursor:default;">
-          <div style="width:28px;height:28px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;flex-shrink:0;">TA</div>
-          <div style="flex:1;overflow:hidden;">
-            <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Teacher Admin</div>
-            <div style="font-size:11px;color:var(--text-3);">1st Sem · A.Y. 2024–25</div>
+        <div class="teacher-chip">
+          <div class="teacher-chip-avatar" id="teacher-chip-avatar">TA</div>
+          <div class="teacher-chip-meta">
+            <div class="teacher-chip-name" id="teacher-chip-name">Teacher Admin</div>
+            <div class="teacher-chip-sub" id="teacher-chip-sub">Signed in</div>
           </div>
         </div>
+        <button type="button" class="btn btn-secondary sidebar-logout" data-action="open-logout">Logout</button>
       </div>
     </aside>
 
-    <!-- MAIN -->
     <div class="main">
-      <div class="topbar">
-        <button class="hamburger" onclick="openSidebar()">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="2" y1="4.5" x2="16" y2="4.5"/><line x1="2" y1="9" x2="16" y2="9"/><line x1="2" y1="13.5" x2="16" y2="13.5"/></svg>
+      <header class="topbar">
+        <button type="button" class="hamburger" data-action="open-sidebar" aria-label="Open sidebar">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8">
+            <line x1="2" y1="4.5" x2="16" y2="4.5"></line>
+            <line x1="2" y1="9" x2="16" y2="9"></line>
+            <line x1="2" y1="13.5" x2="16" y2="13.5"></line>
+          </svg>
         </button>
         <div class="topbar-title" id="topbar-title">Dashboard</div>
-        <div class="topbar-badge">A.Y. 2024–25 · 1st Semester</div>
-        <div class="topbar-avatar">TA</div>
-      </div>
+        <div class="topbar-right">
+          <div class="topbar-avatar" id="topbar-avatar">TA</div>
+          <button type="button" class="btn btn-secondary btn-sm" data-action="open-logout">Logout</button>
+        </div>
+      </header>
 
-      <div class="content">
-
-        <!-- ═══════════ DASHBOARD ═══════════ -->
-        <div class="page active" id="page-dashboard">
+      <main class="content">
+        <section class="page active" id="page-dashboard">
           <div class="page-header">
             <div>
-              <div class="page-title">Good morning, Teacher</div>
+              <div class="page-title" id="dashboard-greeting">Welcome back, Teacher</div>
               <div class="page-sub">Summary of your current semester.</div>
             </div>
           </div>
+
           <div class="stat-grid">
-            <div class="stat-card stat-accent"><div class="stat-label">Schedules</div><div class="stat-value">6</div><div class="stat-desc">This semester</div></div>
-            <div class="stat-card stat-blue"><div class="stat-label">Students</div><div class="stat-value">183</div><div class="stat-desc">All classes</div></div>
-            <div class="stat-card stat-green"><div class="stat-label">Assessments</div><div class="stat-value">42</div><div class="stat-desc">Created</div></div>
-            <div class="stat-card stat-amber"><div class="stat-label">Attendance</div><div class="stat-value">91%</div><div class="stat-desc">This month</div></div>
+            <div class="stat-card stat-accent">
+              <div class="stat-label">Schedules</div>
+              <div class="stat-value">6</div>
+              <div class="stat-desc">This semester</div>
+            </div>
+            <div class="stat-card stat-blue">
+              <div class="stat-label">Students</div>
+              <div class="stat-value">183</div>
+              <div class="stat-desc">All classes</div>
+            </div>
+            <div class="stat-card stat-green">
+              <div class="stat-label">Assessments</div>
+              <div class="stat-value">42</div>
+              <div class="stat-desc">Created</div>
+            </div>
+            <div class="stat-card stat-amber">
+              <div class="stat-label">Attendance</div>
+              <div class="stat-value">91%</div>
+              <div class="stat-desc">This month</div>
+            </div>
           </div>
+
           <div class="two-col">
-            <div class="card">
-              <div class="card-header"><span class="card-title">Active Schedules</span><span class="badge badge-green">1st Sem</span></div>
-              <div style="padding:14px 18px;">
-                <div class="schedule-row-accent"><div class="schedule-dot" style="background:var(--blue);"></div><div style="flex:1;"><div style="font-size:13.5px;font-weight:500;">Mathematics 10</div><div style="font-size:12px;color:var(--text-3);">Section A · 34 students</div></div><span class="badge badge-blue">Active</span></div>
-                <div class="schedule-row-accent"><div class="schedule-dot" style="background:var(--green);"></div><div style="flex:1;"><div style="font-size:13.5px;font-weight:500;">Science 9</div><div style="font-size:12px;color:var(--text-3);">Section B · 31 students</div></div><span class="badge badge-green">Active</span></div>
-                <div class="schedule-row-accent"><div class="schedule-dot" style="background:var(--amber);"></div><div style="flex:1;"><div style="font-size:13.5px;font-weight:500;">English 11</div><div style="font-size:12px;color:var(--text-3);">Section C · 29 students</div></div><span class="badge badge-amber">Midterm</span></div>
-                <div class="schedule-row-accent"><div class="schedule-dot" style="background:var(--accent);"></div><div style="flex:1;"><div style="font-size:13.5px;font-weight:500;">Filipino 10</div><div style="font-size:12px;color:var(--text-3);">Section D · 32 students</div></div><span class="badge badge-gray">Prelim</span></div>
+            <article class="card">
+              <div class="card-header">
+                <span class="card-title">Active Schedules</span>
+                <span class="badge badge-green">1st Sem</span>
               </div>
-            </div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">Recent Activity</span></div>
-              <div style="padding:8px 18px;">
-                <div class="activity-item"><div class="activity-dot" style="background:var(--green);"></div><div><div class="activity-text">Attendance recorded for <strong>Mathematics 10 – A</strong></div><div class="activity-time">Today, 8:15 AM</div></div></div>
-                <div class="activity-item"><div class="activity-dot" style="background:var(--blue);"></div><div><div class="activity-text">Quiz 2 scores entered for <strong>Science 9 – B</strong></div><div class="activity-time">Yesterday, 3:40 PM</div></div></div>
-                <div class="activity-item"><div class="activity-dot" style="background:var(--amber);"></div><div><div class="activity-text">New student enrolled: <strong>Juan dela Cruz</strong></div><div class="activity-time">Nov 4, 10:00 AM</div></div></div>
-                <div class="activity-item"><div class="activity-dot" style="background:var(--accent);"></div><div><div class="activity-text">Midterm exam created for <strong>Filipino 10 – D</strong></div><div class="activity-time">Nov 3, 2:15 PM</div></div></div>
-                <div class="activity-item"><div class="activity-dot" style="background:var(--red);"></div><div><div class="activity-text">Grade period closed: <strong>Prelim – Math 10</strong></div><div class="activity-time">Oct 28, 4:00 PM</div></div></div>
+              <div class="card-body compact-list">
+                <div class="schedule-row-accent">
+                  <span class="schedule-dot dot-blue"></span>
+                  <div class="schedule-text">
+                    <div class="schedule-name">Mathematics 10</div>
+                    <div class="schedule-meta">Section A - 34 students</div>
+                  </div>
+                  <span class="badge badge-blue">Active</span>
+                </div>
+                <div class="schedule-row-accent">
+                  <span class="schedule-dot dot-green"></span>
+                  <div class="schedule-text">
+                    <div class="schedule-name">Science 9</div>
+                    <div class="schedule-meta">Section B - 31 students</div>
+                  </div>
+                  <span class="badge badge-green">Active</span>
+                </div>
+                <div class="schedule-row-accent">
+                  <span class="schedule-dot dot-amber"></span>
+                  <div class="schedule-text">
+                    <div class="schedule-name">English 11</div>
+                    <div class="schedule-meta">Section C - 29 students</div>
+                  </div>
+                  <span class="badge badge-amber">Midterm</span>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </article>
 
-        <!-- ═══════════ SCHEDULES ═══════════ -->
-        <div class="page" id="page-schedules">
-          <div class="page-header">
-            <div><div class="page-title">Schedules</div><div class="page-sub">Manage subjects and sections.</div></div>
-            <button class="btn btn-primary" onclick="openModal('modal-schedule')">+ New</button>
-          </div>
-          <div class="filter-bar">
-            <div class="search-box"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9c9a94" stroke-width="1.5"><circle cx="7" cy="7" r="4"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg><input type="text" placeholder="Search schedules..."></div>
-            <select class="filter-select"><option>All Semesters</option><option>1st Semester</option><option>2nd Semester</option></select>
-          </div>
-          <!-- Desktop -->
-          <div class="card desktop-table">
-            <div class="table-wrap"><table>
-              <thead><tr><th>Subject</th><th>Section</th><th>School Year</th><th>Semester</th><th>Students</th><th>Period</th><th></th></tr></thead>
-              <tbody>
-                <tr><td><strong>Mathematics 10</strong></td><td>Section A</td><td>2024–2025</td><td><span class="badge badge-blue">1st Sem</span></td><td style="font-family:'DM Mono',monospace;">34</td><td><span class="badge badge-green">Midterm</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button><button class="btn btn-danger" style="padding:5px 10px;font-size:12px;">Delete</button></div></td></tr>
-                <tr><td><strong>Science 9</strong></td><td>Section B</td><td>2024–2025</td><td><span class="badge badge-blue">1st Sem</span></td><td style="font-family:'DM Mono',monospace;">31</td><td><span class="badge badge-green">Midterm</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button><button class="btn btn-danger" style="padding:5px 10px;font-size:12px;">Delete</button></div></td></tr>
-                <tr><td><strong>English 11</strong></td><td>Section C</td><td>2024–2025</td><td><span class="badge badge-blue">1st Sem</span></td><td style="font-family:'DM Mono',monospace;">29</td><td><span class="badge badge-amber">Midterm</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button><button class="btn btn-danger" style="padding:5px 10px;font-size:12px;">Delete</button></div></td></tr>
-                <tr><td><strong>Filipino 10</strong></td><td>Section D</td><td>2024–2025</td><td><span class="badge badge-blue">1st Sem</span></td><td style="font-family:'DM Mono',monospace;">32</td><td><span class="badge badge-gray">Prelim</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button><button class="btn btn-danger" style="padding:5px 10px;font-size:12px;">Delete</button></div></td></tr>
-                <tr><td><strong>MAPEH 10</strong></td><td>Section A</td><td>2024–2025</td><td><span class="badge badge-blue">1st Sem</span></td><td style="font-family:'DM Mono',monospace;">34</td><td><span class="badge badge-gray">Prelim</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button><button class="btn btn-danger" style="padding:5px 10px;font-size:12px;">Delete</button></div></td></tr>
-                <tr><td><strong>TLE 9</strong></td><td>Section B</td><td>2024–2025</td><td><span class="badge badge-blue">1st Sem</span></td><td style="font-family:'DM Mono',monospace;">23</td><td><span class="badge badge-green">Midterm</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button><button class="btn btn-danger" style="padding:5px 10px;font-size:12px;">Delete</button></div></td></tr>
-              </tbody>
-            </table></div>
-          </div>
-          <!-- Mobile -->
-          <div class="mobile-card-list">
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Mathematics 10</div><div class="m-card-sub">Section A</div></div><span class="badge badge-green">Midterm</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Year</span><span class="m-meta-value">2024–25</span></div><div class="m-meta-item"><span class="m-meta-label">Sem</span><span class="m-meta-value">1st</span></div><div class="m-meta-item"><span class="m-meta-label">Students</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">34</span></div></div><div class="m-card-actions"><button class="btn btn-ghost">Edit</button><button class="btn btn-danger">Delete</button></div></div>
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Science 9</div><div class="m-card-sub">Section B</div></div><span class="badge badge-green">Midterm</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Year</span><span class="m-meta-value">2024–25</span></div><div class="m-meta-item"><span class="m-meta-label">Sem</span><span class="m-meta-value">1st</span></div><div class="m-meta-item"><span class="m-meta-label">Students</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">31</span></div></div><div class="m-card-actions"><button class="btn btn-ghost">Edit</button><button class="btn btn-danger">Delete</button></div></div>
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">English 11</div><div class="m-card-sub">Section C</div></div><span class="badge badge-amber">Midterm</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Year</span><span class="m-meta-value">2024–25</span></div><div class="m-meta-item"><span class="m-meta-label">Sem</span><span class="m-meta-value">1st</span></div><div class="m-meta-item"><span class="m-meta-label">Students</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">29</span></div></div><div class="m-card-actions"><button class="btn btn-ghost">Edit</button><button class="btn btn-danger">Delete</button></div></div>
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Filipino 10</div><div class="m-card-sub">Section D</div></div><span class="badge badge-gray">Prelim</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Year</span><span class="m-meta-value">2024–25</span></div><div class="m-meta-item"><span class="m-meta-label">Sem</span><span class="m-meta-value">1st</span></div><div class="m-meta-item"><span class="m-meta-label">Students</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">32</span></div></div><div class="m-card-actions"><button class="btn btn-ghost">Edit</button><button class="btn btn-danger">Delete</button></div></div>
-          </div>
-        </div>
-
-        <!-- ═══════════ STUDENTS ═══════════ -->
-        <div class="page" id="page-students">
-          <div class="page-header">
-            <div><div class="page-title">Students</div><div class="page-sub">Manage student records.</div></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-secondary" onclick="openModal('modal-enroll')">+ Enroll</button>
-              <button class="btn btn-primary" onclick="openModal('modal-student')">+ Add</button>
-            </div>
-          </div>
-          <div class="filter-bar">
-            <div class="search-box"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9c9a94" stroke-width="1.5"><circle cx="7" cy="7" r="4"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg><input type="text" placeholder="Search by name or ID..."></div>
-            <select class="filter-select"><option>All Sections</option><option>Section A</option><option>Section B</option><option>Section C</option></select>
-          </div>
-          <!-- Desktop -->
-          <div class="card desktop-table">
-            <div class="table-wrap"><table>
-              <thead><tr><th>Student</th><th>Student ID</th><th>Enrolled</th><th>Avg Grade</th><th>Attendance</th><th></th></tr></thead>
-              <tbody>
-                <tr><td><div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--blue);flex-shrink:0;">JD</div>Juan dela Cruz</div></td><td style="font-family:'DM Mono',monospace;color:var(--text-2);font-size:12.5px;">2024-0001</td><td>3 schedules</td><td><span style="font-family:'DM Mono',monospace;color:var(--green);font-weight:500;">88.4</span></td><td><span class="badge badge-green">94%</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">View</button><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button></div></td></tr>
-                <tr><td><div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--green);flex-shrink:0;">MS</div>Maria Santos</div></td><td style="font-family:'DM Mono',monospace;color:var(--text-2);font-size:12.5px;">2024-0002</td><td>4 schedules</td><td><span style="font-family:'DM Mono',monospace;color:var(--green);font-weight:500;">92.1</span></td><td><span class="badge badge-green">98%</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">View</button><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button></div></td></tr>
-                <tr><td><div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--amber);flex-shrink:0;">PR</div>Pedro Reyes</div></td><td style="font-family:'DM Mono',monospace;color:var(--text-2);font-size:12.5px;">2024-0003</td><td>3 schedules</td><td><span style="font-family:'DM Mono',monospace;color:var(--amber);font-weight:500;">74.6</span></td><td><span class="badge badge-amber">81%</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">View</button><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button></div></td></tr>
-                <tr><td><div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--red);flex-shrink:0;">AL</div>Ana Lim</div></td><td style="font-family:'DM Mono',monospace;color:var(--text-2);font-size:12.5px;">2024-0004</td><td>2 schedules</td><td><span style="font-family:'DM Mono',monospace;color:var(--red);font-weight:500;">68.0</span></td><td><span class="badge badge-red">74%</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">View</button><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button></div></td></tr>
-              </tbody>
-            </table></div>
-          </div>
-          <!-- Mobile -->
-          <div class="mobile-card-list">
-            <div class="m-card"><div class="m-card-row"><div style="display:flex;align-items:center;gap:10px;"><div style="width:36px;height:36px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--blue);flex-shrink:0;">JD</div><div><div class="m-card-title">Juan dela Cruz</div><div class="m-card-sub">2024-0001</div></div></div><span class="badge badge-green">94%</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Schedules</span><span class="m-meta-value">3</span></div><div class="m-meta-item"><span class="m-meta-label">Avg Grade</span><span class="m-meta-value" style="color:var(--green);font-family:'DM Mono',monospace;">88.4</span></div></div><div class="m-card-actions"><button class="btn btn-ghost">View</button><button class="btn btn-ghost">Edit</button></div></div>
-            <div class="m-card"><div class="m-card-row"><div style="display:flex;align-items:center;gap:10px;"><div style="width:36px;height:36px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--green);flex-shrink:0;">MS</div><div><div class="m-card-title">Maria Santos</div><div class="m-card-sub">2024-0002</div></div></div><span class="badge badge-green">98%</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Schedules</span><span class="m-meta-value">4</span></div><div class="m-meta-item"><span class="m-meta-label">Avg Grade</span><span class="m-meta-value" style="color:var(--green);font-family:'DM Mono',monospace;">92.1</span></div></div><div class="m-card-actions"><button class="btn btn-ghost">View</button><button class="btn btn-ghost">Edit</button></div></div>
-            <div class="m-card"><div class="m-card-row"><div style="display:flex;align-items:center;gap:10px;"><div style="width:36px;height:36px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--amber);flex-shrink:0;">PR</div><div><div class="m-card-title">Pedro Reyes</div><div class="m-card-sub">2024-0003</div></div></div><span class="badge badge-amber">81%</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Schedules</span><span class="m-meta-value">3</span></div><div class="m-meta-item"><span class="m-meta-label">Avg Grade</span><span class="m-meta-value" style="color:var(--amber);font-family:'DM Mono',monospace;">74.6</span></div></div><div class="m-card-actions"><button class="btn btn-ghost">View</button><button class="btn btn-ghost">Edit</button></div></div>
-            <div class="m-card"><div class="m-card-row"><div style="display:flex;align-items:center;gap:10px;"><div style="width:36px;height:36px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--red);flex-shrink:0;">AL</div><div><div class="m-card-title">Ana Lim</div><div class="m-card-sub">2024-0004</div></div></div><span class="badge badge-red">74%</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Schedules</span><span class="m-meta-value">2</span></div><div class="m-meta-item"><span class="m-meta-label">Avg Grade</span><span class="m-meta-value" style="color:var(--red);font-family:'DM Mono',monospace;">68.0</span></div></div><div class="m-card-actions"><button class="btn btn-ghost">View</button><button class="btn btn-ghost">Edit</button></div></div>
-          </div>
-        </div>
-
-        <!-- ═══════════ ASSESSMENTS ═══════════ -->
-        <div class="page" id="page-assessments">
-          <div class="page-header">
-            <div><div class="page-title">Assessments</div><div class="page-sub">Quizzes, exams, and activities.</div></div>
-            <button class="btn btn-primary" onclick="openModal('modal-assessment')">+ New</button>
-          </div>
-          <div class="filter-bar">
-            <select class="filter-select"><option>Mathematics 10 – Section A</option><option>Science 9 – Section B</option></select>
-            <select class="filter-select"><option>Prelim</option><option>Midterm</option><option>Prefinal</option><option>Final</option></select>
-          </div>
-          <!-- Desktop -->
-          <div class="card desktop-table">
-            <div class="card-header"><span class="card-title">Mathematics 10 – Section A · Prelim</span><span class="badge badge-gray">34 students</span></div>
-            <div class="table-wrap"><table>
-              <thead><tr><th>Assessment</th><th>Type</th><th>Max</th><th>Avg</th><th>Submitted</th><th></th></tr></thead>
-              <tbody>
-                <tr><td><strong>Quiz 1</strong></td><td><span class="badge badge-blue">Quiz</span></td><td style="font-family:'DM Mono',monospace;">50</td><td style="font-family:'DM Mono',monospace;color:var(--green);">43.2</td><td><span class="badge badge-green">34/34</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Scores</button><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button></div></td></tr>
-                <tr><td><strong>Activity 1</strong></td><td><span class="badge badge-green">Activity</span></td><td style="font-family:'DM Mono',monospace;">100</td><td style="font-family:'DM Mono',monospace;color:var(--green);">87.5</td><td><span class="badge badge-green">34/34</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Scores</button><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button></div></td></tr>
-                <tr><td><strong>Quiz 2</strong></td><td><span class="badge badge-blue">Quiz</span></td><td style="font-family:'DM Mono',monospace;">50</td><td style="font-family:'DM Mono',monospace;color:var(--amber);">38.1</td><td><span class="badge badge-amber">30/34</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Scores</button><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button></div></td></tr>
-                <tr><td><strong>Prelim Exam</strong></td><td><span class="badge badge-red">Exam</span></td><td style="font-family:'DM Mono',monospace;">100</td><td style="font-family:'DM Mono',monospace;color:var(--amber);">75.3</td><td><span class="badge badge-amber">32/34</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Scores</button><button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">Edit</button></div></td></tr>
-              </tbody>
-            </table></div>
-          </div>
-          <!-- Mobile -->
-          <div class="mobile-card-list">
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Quiz 1</div><div class="m-card-sub">Math 10 – Sec A · Prelim</div></div><span class="badge badge-blue">Quiz</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Max</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">50</span></div><div class="m-meta-item"><span class="m-meta-label">Avg</span><span class="m-meta-value" style="color:var(--green);font-family:'DM Mono',monospace;">43.2</span></div><div class="m-meta-item"><span class="m-meta-label">Submitted</span><span class="m-meta-value"><span class="badge badge-green">34/34</span></span></div></div><div class="m-card-actions"><button class="btn btn-ghost">Scores</button><button class="btn btn-ghost">Edit</button></div></div>
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Activity 1</div><div class="m-card-sub">Math 10 – Sec A · Prelim</div></div><span class="badge badge-green">Activity</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Max</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">100</span></div><div class="m-meta-item"><span class="m-meta-label">Avg</span><span class="m-meta-value" style="color:var(--green);font-family:'DM Mono',monospace;">87.5</span></div><div class="m-meta-item"><span class="m-meta-label">Submitted</span><span class="m-meta-value"><span class="badge badge-green">34/34</span></span></div></div><div class="m-card-actions"><button class="btn btn-ghost">Scores</button><button class="btn btn-ghost">Edit</button></div></div>
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Prelim Exam</div><div class="m-card-sub">Math 10 – Sec A · Prelim</div></div><span class="badge badge-red">Exam</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Max</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">100</span></div><div class="m-meta-item"><span class="m-meta-label">Avg</span><span class="m-meta-value" style="color:var(--amber);font-family:'DM Mono',monospace;">75.3</span></div><div class="m-meta-item"><span class="m-meta-label">Submitted</span><span class="m-meta-value"><span class="badge badge-amber">32/34</span></span></div></div><div class="m-card-actions"><button class="btn btn-ghost">Scores</button><button class="btn btn-ghost">Edit</button></div></div>
-          </div>
-        </div>
-
-        <!-- ═══════════ ATTENDANCE ═══════════ -->
-        <div class="page" id="page-attendance">
-          <div class="page-header">
-            <div><div class="page-title">Attendance</div><div class="page-sub">Daily tracking per schedule.</div></div>
-            <button class="btn btn-primary">Save</button>
-          </div>
-          <div class="filter-bar">
-            <select class="filter-select"><option>Mathematics 10 – Section A</option><option>Science 9 – Section B</option></select>
-            <input type="date" value="2024-11-05" class="filter-select">
-            <div style="display:flex;gap:4px;align-items:center;">
-              <span class="att-btn p" style="cursor:default;">P</span><span class="att-btn a" style="cursor:default;">A</span><span class="att-btn l" style="cursor:default;">L</span><span class="att-btn e" style="cursor:default;">E</span>
-            </div>
-          </div>
-          <!-- Desktop -->
-          <div class="card desktop-table">
-            <div class="table-wrap"><table>
-              <thead><tr><th>Student</th><th>Nov 1</th><th>Nov 4</th><th>Nov 5 (Today)</th><th>Nov 6</th><th>Rate</th></tr></thead>
-              <tbody>
-                <tr><td>Juan dela Cruz</td><td><span class="badge badge-green">P</span></td><td><span class="badge badge-green">P</span></td><td><div class="att-status"><span class="att-btn p active-p" onclick="setAtt(this,'p')">P</span><span class="att-btn a" onclick="setAtt(this,'a')">A</span><span class="att-btn l" onclick="setAtt(this,'l')">L</span><span class="att-btn e" onclick="setAtt(this,'e')">E</span></div></td><td><span style="color:var(--text-3);">—</span></td><td><span class="badge badge-green">100%</span></td></tr>
-                <tr><td>Maria Santos</td><td><span class="badge badge-green">P</span></td><td><span class="badge badge-green">P</span></td><td><div class="att-status"><span class="att-btn p active-p" onclick="setAtt(this,'p')">P</span><span class="att-btn a" onclick="setAtt(this,'a')">A</span><span class="att-btn l" onclick="setAtt(this,'l')">L</span><span class="att-btn e" onclick="setAtt(this,'e')">E</span></div></td><td><span style="color:var(--text-3);">—</span></td><td><span class="badge badge-green">100%</span></td></tr>
-                <tr><td>Pedro Reyes</td><td><span class="badge badge-red">A</span></td><td><span class="badge badge-amber">L</span></td><td><div class="att-status"><span class="att-btn p" onclick="setAtt(this,'p')">P</span><span class="att-btn a" onclick="setAtt(this,'a')">A</span><span class="att-btn l active-l" onclick="setAtt(this,'l')">L</span><span class="att-btn e" onclick="setAtt(this,'e')">E</span></div></td><td><span style="color:var(--text-3);">—</span></td><td><span class="badge badge-red">33%</span></td></tr>
-                <tr><td>Ana Lim</td><td><span class="badge badge-green">P</span></td><td><span class="badge badge-blue">E</span></td><td><div class="att-status"><span class="att-btn p" onclick="setAtt(this,'p')">P</span><span class="att-btn a" onclick="setAtt(this,'a')">A</span><span class="att-btn l" onclick="setAtt(this,'l')">L</span><span class="att-btn e active-e" onclick="setAtt(this,'e')">E</span></div></td><td><span style="color:var(--text-3);">—</span></td><td><span class="badge badge-amber">67%</span></td></tr>
-              </tbody>
-            </table></div>
-          </div>
-          <!-- Mobile -->
-          <div class="mobile-card-list">
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Juan dela Cruz</div><div style="display:flex;gap:5px;margin-top:4px;"><span class="badge badge-green">P</span><span class="badge badge-green">P</span></div></div><span class="badge badge-green">100%</span></div><div style="margin-top:10px;"><div style="font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Today (Nov 5)</div><div class="att-status"><span class="att-btn p active-p" onclick="setAtt(this,'p')">P</span><span class="att-btn a" onclick="setAtt(this,'a')">A</span><span class="att-btn l" onclick="setAtt(this,'l')">L</span><span class="att-btn e" onclick="setAtt(this,'e')">E</span></div></div></div>
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Maria Santos</div><div style="display:flex;gap:5px;margin-top:4px;"><span class="badge badge-green">P</span><span class="badge badge-green">P</span></div></div><span class="badge badge-green">100%</span></div><div style="margin-top:10px;"><div style="font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Today (Nov 5)</div><div class="att-status"><span class="att-btn p active-p" onclick="setAtt(this,'p')">P</span><span class="att-btn a" onclick="setAtt(this,'a')">A</span><span class="att-btn l" onclick="setAtt(this,'l')">L</span><span class="att-btn e" onclick="setAtt(this,'e')">E</span></div></div></div>
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Pedro Reyes</div><div style="display:flex;gap:5px;margin-top:4px;"><span class="badge badge-red">A</span><span class="badge badge-amber">L</span></div></div><span class="badge badge-red">33%</span></div><div style="margin-top:10px;"><div style="font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Today (Nov 5)</div><div class="att-status"><span class="att-btn p" onclick="setAtt(this,'p')">P</span><span class="att-btn a" onclick="setAtt(this,'a')">A</span><span class="att-btn l active-l" onclick="setAtt(this,'l')">L</span><span class="att-btn e" onclick="setAtt(this,'e')">E</span></div></div></div>
-            <div class="m-card"><div class="m-card-row"><div><div class="m-card-title">Ana Lim</div><div style="display:flex;gap:5px;margin-top:4px;"><span class="badge badge-green">P</span><span class="badge badge-blue">E</span></div></div><span class="badge badge-amber">67%</span></div><div style="margin-top:10px;"><div style="font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Today (Nov 5)</div><div class="att-status"><span class="att-btn p" onclick="setAtt(this,'p')">P</span><span class="att-btn a" onclick="setAtt(this,'a')">A</span><span class="att-btn l" onclick="setAtt(this,'l')">L</span><span class="att-btn e active-e" onclick="setAtt(this,'e')">E</span></div></div></div>
-          </div>
-        </div>
-
-        <!-- ═══════════ GRADES ═══════════ -->
-        <div class="page" id="page-grades">
-          <div class="page-header">
-            <div><div class="page-title">Grades</div><div class="page-sub">Computed grades per period.</div></div>
-            <button class="btn btn-secondary">Export CSV</button>
-          </div>
-          <div class="filter-bar">
-            <select class="filter-select"><option>Mathematics 10 – Section A</option><option>Science 9 – Section B</option></select>
-          </div>
-          <div class="tabs">
-            <div class="tab active" onclick="switchTab(this,'tab-prelim')">Prelim</div>
-            <div class="tab" onclick="switchTab(this,'tab-midterm')">Midterm</div>
-            <div class="tab" onclick="switchTab(this,'tab-prefinal')">Prefinal</div>
-            <div class="tab" onclick="switchTab(this,'tab-final')">Final</div>
-            <div class="tab" onclick="switchTab(this,'tab-average')">Average</div>
-          </div>
-          <div id="tab-prelim">
-            <!-- Desktop -->
-            <div class="card desktop-table">
-              <div class="table-wrap"><table>
-                <thead><tr><th>Student</th><th>Quizzes 30%</th><th>Activities 40%</th><th>Exam 30%</th><th>Grade</th><th>Remarks</th></tr></thead>
-                <tbody>
-                  <tr><td>Juan dela Cruz</td><td style="font-family:'DM Mono',monospace;">88</td><td style="font-family:'DM Mono',monospace;">90</td><td style="font-family:'DM Mono',monospace;">85</td><td><div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'DM Mono',monospace;font-weight:600;color:var(--green);">88.00</span><div class="grade-bar"><div class="grade-fill" style="width:88%;"></div></div></div></td><td><span class="badge badge-green">Passed</span></td></tr>
-                  <tr><td>Maria Santos</td><td style="font-family:'DM Mono',monospace;">95</td><td style="font-family:'DM Mono',monospace;">93</td><td style="font-family:'DM Mono',monospace;">91</td><td><div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'DM Mono',monospace;font-weight:600;color:var(--green);">93.00</span><div class="grade-bar"><div class="grade-fill" style="width:93%;"></div></div></div></td><td><span class="badge badge-green">Passed</span></td></tr>
-                  <tr><td>Pedro Reyes</td><td style="font-family:'DM Mono',monospace;">72</td><td style="font-family:'DM Mono',monospace;">75</td><td style="font-family:'DM Mono',monospace;">70</td><td><div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'DM Mono',monospace;font-weight:600;color:var(--amber);">72.50</span><div class="grade-bar"><div class="grade-fill mid" style="width:72%;"></div></div></div></td><td><span class="badge badge-green">Passed</span></td></tr>
-                  <tr><td>Ana Lim</td><td style="font-family:'DM Mono',monospace;">62</td><td style="font-family:'DM Mono',monospace;">65</td><td style="font-family:'DM Mono',monospace;">60</td><td><div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'DM Mono',monospace;font-weight:600;color:var(--red);">62.30</span><div class="grade-bar"><div class="grade-fill low" style="width:62%;"></div></div></div></td><td><span class="badge badge-red">Failed</span></td></tr>
-                </tbody>
-              </table></div>
-            </div>
-            <!-- Mobile grade cards -->
-            <div class="mobile-card-list">
-              <div class="m-card"><div class="m-card-row"><div class="m-card-title">Juan dela Cruz</div><span class="badge badge-green">Passed</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Quizzes</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">88</span></div><div class="m-meta-item"><span class="m-meta-label">Activities</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">90</span></div><div class="m-meta-item"><span class="m-meta-label">Exam</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">85</span></div><div class="m-meta-item"><span class="m-meta-label">Grade</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;color:var(--green);font-size:16px;font-weight:600;">88.00</span></div></div></div>
-              <div class="m-card"><div class="m-card-row"><div class="m-card-title">Maria Santos</div><span class="badge badge-green">Passed</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Quizzes</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">95</span></div><div class="m-meta-item"><span class="m-meta-label">Activities</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">93</span></div><div class="m-meta-item"><span class="m-meta-label">Exam</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">91</span></div><div class="m-meta-item"><span class="m-meta-label">Grade</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;color:var(--green);font-size:16px;font-weight:600;">93.00</span></div></div></div>
-              <div class="m-card"><div class="m-card-row"><div class="m-card-title">Pedro Reyes</div><span class="badge badge-green">Passed</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Quizzes</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">72</span></div><div class="m-meta-item"><span class="m-meta-label">Activities</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">75</span></div><div class="m-meta-item"><span class="m-meta-label">Exam</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">70</span></div><div class="m-meta-item"><span class="m-meta-label">Grade</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;color:var(--amber);font-size:16px;font-weight:600;">72.50</span></div></div></div>
-              <div class="m-card"><div class="m-card-row"><div class="m-card-title">Ana Lim</div><span class="badge badge-red">Failed</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Quizzes</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">62</span></div><div class="m-meta-item"><span class="m-meta-label">Activities</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">65</span></div><div class="m-meta-item"><span class="m-meta-label">Exam</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;">60</span></div><div class="m-meta-item"><span class="m-meta-label">Grade</span><span class="m-meta-value" style="font-family:'DM Mono',monospace;color:var(--red);font-size:16px;font-weight:600;">62.30</span></div></div></div>
-            </div>
-          </div>
-          <div id="tab-midterm" style="display:none;"><div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Midterm grades not yet available.</div></div></div></div></div>
-          <div id="tab-prefinal" style="display:none;"><div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Prefinal grades not yet available.</div></div></div></div></div>
-          <div id="tab-final" style="display:none;"><div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Final grades not yet available.</div></div></div></div></div>
-          <div id="tab-average" style="display:none;"><div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Final averages will appear when all periods are complete.</div></div></div></div></div>
-        </div>
-
-        <!-- ═══════════ SCHOOL SETUP ═══════════ -->
-        <div class="page" id="page-setup">
-          <div class="page-header">
-            <div><div class="page-title">School Setup</div><div class="page-sub">School years, semesters, and grading periods.</div></div>
-          </div>
-          <div class="setup-grid">
-            <div class="card">
-              <div class="card-header"><span class="card-title">School Years</span><button class="btn btn-primary" style="padding:5px 12px;font-size:12px;">+ Add</button></div>
-              <div>
-                <div class="setup-item"><div><div style="font-size:13.5px;font-weight:500;">2024–2025</div><div style="font-size:12px;color:var(--text-3);">Current</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-green">Active</span><button class="icon-btn">✎</button></div></div>
-                <div class="setup-item"><div><div style="font-size:13.5px;font-weight:500;">2023–2024</div><div style="font-size:12px;color:var(--text-3);">Completed</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-gray">Inactive</span><div class="setup-item-actions"><button class="icon-btn">✎</button><button class="icon-btn" style="color:var(--red);">✕</button></div></div></div>
+            <article class="card">
+              <div class="card-header">
+                <span class="card-title">Recent Activity</span>
               </div>
-            </div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">Semesters</span><button class="btn btn-primary" style="padding:5px 12px;font-size:12px;">+ Add</button></div>
-              <div>
-                <div class="setup-item"><div><div style="font-size:13.5px;font-weight:500;">1st Semester</div><div style="font-size:12px;color:var(--text-3);">Aug – Dec 2024</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-green">Active</span><button class="icon-btn">✎</button></div></div>
-                <div class="setup-item"><div><div style="font-size:13.5px;font-weight:500;">2nd Semester</div><div style="font-size:12px;color:var(--text-3);">Jan – May 2025</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-gray">Upcoming</span><button class="icon-btn">✎</button></div></div>
-              </div>
-            </div>
-            <div class="card" style="grid-column:1/-1;">
-              <div class="card-header"><span class="card-title">Grading Periods & Weights</span><button class="btn btn-secondary" style="padding:5px 12px;font-size:12px;">+ Add</button></div>
-              <div class="card-body">
-                <div class="period-row"><div><div style="font-size:13.5px;font-weight:500;">Prelim</div><div style="font-size:12px;color:var(--text-3);">First grading period</div></div><div style="display:flex;align-items:center;gap:12px;"><span class="weight-chip">25%</span><div class="setup-item-actions"><button class="icon-btn">✎</button><button class="icon-btn" style="color:var(--red);">✕</button></div></div></div>
-                <div class="period-row"><div><div style="font-size:13.5px;font-weight:500;">Midterm</div><div style="font-size:12px;color:var(--text-3);">Second grading period</div></div><div style="display:flex;align-items:center;gap:12px;"><span class="weight-chip">25%</span><div class="setup-item-actions"><button class="icon-btn">✎</button><button class="icon-btn" style="color:var(--red);">✕</button></div></div></div>
-                <div class="period-row"><div><div style="font-size:13.5px;font-weight:500;">Prefinal</div><div style="font-size:12px;color:var(--text-3);">Third grading period</div></div><div style="display:flex;align-items:center;gap:12px;"><span class="weight-chip">25%</span><div class="setup-item-actions"><button class="icon-btn">✎</button><button class="icon-btn" style="color:var(--red);">✕</button></div></div></div>
-                <div class="period-row" style="border-bottom:none;"><div><div style="font-size:13.5px;font-weight:500;">Final</div><div style="font-size:12px;color:var(--text-3);">Fourth grading period</div></div><div style="display:flex;align-items:center;gap:12px;"><span class="weight-chip">25%</span><div class="setup-item-actions"><button class="icon-btn">✎</button><button class="icon-btn" style="color:var(--red);">✕</button></div></div></div>
-                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;"><span style="font-size:12px;color:var(--text-3);">Total:</span><span style="font-family:'DM Mono',monospace;font-weight:600;color:var(--green);">100%</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══════════ SETTINGS ═══════════ -->
-        <div class="page" id="page-settings">
-          <div class="page-header">
-            <div><div class="page-title">Settings</div><div class="page-sub">Account and grading preferences.</div></div>
-          </div>
-          <div class="two-col">
-            <div>
-              <div class="settings-title">Account</div>
-              <div class="card">
-                <div class="card-body">
-                  <div class="form-grid" style="grid-template-columns:1fr;">
-                    <div class="form-group"><label>Display Name</label><input type="text" value="Teacher Admin"></div>
-                    <div class="form-group"><label>Username</label><input type="text" value="teacher_admin"></div>
-                    <div class="form-group"><label>Current Password</label><input type="password" placeholder="••••••••"></div>
-                    <div class="form-group"><label>New Password</label><input type="password" placeholder="Min. 8 characters"></div>
-                    <div class="form-group"><label>Confirm New Password</label><input type="password" placeholder="Repeat new password"></div>
-                    <button class="btn btn-primary" style="width:fit-content;">Save Changes</button>
+              <div class="card-body compact-list">
+                <div class="activity-item">
+                  <span class="activity-dot dot-green"></span>
+                  <div>
+                    <div class="activity-text">Attendance recorded for <strong>Mathematics 10 - A</strong></div>
+                    <div class="activity-time">Today, 8:15 AM</div>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <span class="activity-dot dot-blue"></span>
+                  <div>
+                    <div class="activity-text">Quiz 2 scores entered for <strong>Science 9 - B</strong></div>
+                    <div class="activity-time">Yesterday, 3:40 PM</div>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <span class="activity-dot dot-amber"></span>
+                  <div>
+                    <div class="activity-text">New student enrolled: <strong>Juan dela Cruz</strong></div>
+                    <div class="activity-time">Nov 4, 10:00 AM</div>
                   </div>
                 </div>
               </div>
-            </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" id="page-schedules">
+          <div class="page-header">
             <div>
-              <div class="settings-title">Grading Templates</div>
-              <div class="card">
-                <div class="card-header"><span class="card-title">Saved Templates</span><button class="btn btn-primary" style="padding:5px 12px;font-size:12px;">+ New</button></div>
-                <div>
-                  <div class="setup-item"><div><div style="font-size:13.5px;font-weight:500;">Standard (Q30/A40/E30)</div><div style="font-size:12px;color:var(--text-3);">Quiz 30% · Activity 40% · Exam 30%</div></div><div class="setup-item-actions"><button class="icon-btn">✎</button><button class="icon-btn" style="color:var(--red);">✕</button></div></div>
-                  <div class="setup-item"><div><div style="font-size:13.5px;font-weight:500;">Exam-Heavy (Q20/A30/E50)</div><div style="font-size:12px;color:var(--text-3);">Quiz 20% · Activity 30% · Exam 50%</div></div><div class="setup-item-actions"><button class="icon-btn">✎</button><button class="icon-btn" style="color:var(--red);">✕</button></div></div>
-                  <div class="setup-item"><div><div style="font-size:13.5px;font-weight:500;">Activity-Based (Q20/A60/E20)</div><div style="font-size:12px;color:var(--text-3);">Quiz 20% · Activity 60% · Exam 20%</div></div><div class="setup-item-actions"><button class="icon-btn">✎</button><button class="icon-btn" style="color:var(--red);">✕</button></div></div>
-                </div>
-              </div>
+              <div class="page-title">Schedules</div>
+              <div class="page-sub">Manage subjects and sections.</div>
             </div>
           </div>
-        </div>
+          <article class="card">
+            <div class="card-body">
+              <p class="placeholder-text">Schedule management UI stays here. Auth guard is active.</p>
+            </div>
+          </article>
+        </section>
 
-      </div><!-- /content -->
-    </div><!-- /main -->
+        <section class="page" id="page-students">
+          <div class="page-header">
+            <div>
+              <div class="page-title">Students</div>
+              <div class="page-sub">Manage student records.</div>
+            </div>
+          </div>
+          <article class="card">
+            <div class="card-body">
+              <p class="placeholder-text">Student management UI stays here. Auth guard is active.</p>
+            </div>
+          </article>
+        </section>
 
-    <!-- BOTTOM NAV -->
-    <nav class="bottom-nav">
-      <div class="bottom-nav-inner">
-        <div class="bnav-item active" id="bnav-dashboard" onclick="bnavClick('dashboard',this)">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Home
-        </div>
-        <div class="bnav-item" id="bnav-schedules" onclick="bnavClick('schedules',this)">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><line x1="5" y1="1.5" x2="5" y2="4.5"/><line x1="11" y1="1.5" x2="11" y2="4.5"/><line x1="2" y1="7" x2="14" y2="7"/></svg>Sched.
-        </div>
-        <div class="bnav-item" id="bnav-students" onclick="bnavClick('students',this)">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="2.5"/><path d="M3 13c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>Students
-        </div>
-        <div class="bnav-item" id="bnav-assessments" onclick="bnavClick('assessments',this)">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h8a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><line x1="5.5" y1="6" x2="10.5" y2="6"/><line x1="5.5" y1="9" x2="8.5" y2="9"/></svg>Assess.
-        </div>
-        <div class="bnav-item" id="bnav-attendance" onclick="bnavClick('attendance',this)">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><polyline points="8,4.5 8,8 10.5,10"/></svg>Attend.
-        </div>
-        <div class="bnav-item" id="bnav-grades" onclick="bnavClick('grades',this)">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,12 5,7 8,9 11,4 14,6"/><line x1="2" y1="14" x2="14" y2="14"/></svg>Grades
-        </div>
-        <div class="bnav-item" id="bnav-setup" onclick="bnavClick('setup',this)">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 2v1.5M8 12.5V14M14 8h-1.5M3.5 8H2M12.2 3.8l-1.1 1.1M4.9 11.1l-1.1 1.1M12.2 12.2l-1.1-1.1M4.9 4.9L3.8 3.8"/></svg>Setup
-        </div>
-        <div class="bnav-item" id="bnav-settings" onclick="bnavClick('settings',this)">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M13.5 6.9l-.8-.2a4.8 4.8 0 0 0-.5-1.1l.5-.7a.5.5 0 0 0-.1-.6l-1-1a.5.5 0 0 0-.6-.1l-.7.4a4.8 4.8 0 0 0-1.2-.5l-.2-.8A.5.5 0 0 0 8.4 2H7.6a.5.5 0 0 0-.5.4l-.2.8a4.8 4.8 0 0 0-1.2.5l-.7-.4a.5.5 0 0 0-.6.1l-1 1a.5.5 0 0 0-.1.6l.5.7a4.8 4.8 0 0 0-.5 1.1l-.8.2A.5.5 0 0 0 2 7.6v.8a.5.5 0 0 0 .4.5l.8.2a4.8 4.8 0 0 0 .5 1.1l-.5.7a.5.5 0 0 0 .1.6l1 1a.5.5 0 0 0 .6.1l.7-.4a4.8 4.8 0 0 0 1.2.5l.2.8a.5.5 0 0 0 .5.4h.8a.5.5 0 0 0 .5-.4l.2-.8a4.8 4.8 0 0 0 1.2-.5l.7.4a.5.5 0 0 0 .6-.1l1-1a.5.5 0 0 0 .1-.6l-.5-.7a4.8 4.8 0 0 0 .5-1.1l.8-.2a.5.5 0 0 0 .4-.5v-.8a.5.5 0 0 0-.4-.5z"/></svg>Settings
-        </div>
-      </div>
-    </nav>
+        <section class="page" id="page-assessments">
+          <div class="page-header">
+            <div>
+              <div class="page-title">Assessments</div>
+              <div class="page-sub">Create and score assessments.</div>
+            </div>
+          </div>
+          <article class="card">
+            <div class="card-body">
+              <p class="placeholder-text">Assessment UI stays here. Auth guard is active.</p>
+            </div>
+          </article>
+        </section>
 
-    <!-- MODALS -->
-    <div class="modal-overlay" id="modal-schedule" onclick="closeModalOutside(event,'modal-schedule')">
+        <section class="page" id="page-attendance">
+          <div class="page-header">
+            <div>
+              <div class="page-title">Attendance</div>
+              <div class="page-sub">Track attendance per schedule.</div>
+            </div>
+          </div>
+          <article class="card">
+            <div class="card-body">
+              <p class="placeholder-text">Attendance UI stays here. Auth guard is active.</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="page" id="page-grades">
+          <div class="page-header">
+            <div>
+              <div class="page-title">Grades</div>
+              <div class="page-sub">View computed grades and summaries.</div>
+            </div>
+          </div>
+          <article class="card">
+            <div class="card-body">
+              <p class="placeholder-text">Grade UI stays here. Auth guard is active.</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="page" id="page-setup">
+          <div class="page-header">
+            <div>
+              <div class="page-title">School Setup</div>
+              <div class="page-sub">Configure school years, semesters, and periods.</div>
+            </div>
+          </div>
+          <article class="card">
+            <div class="card-body">
+              <p class="placeholder-text">School setup UI stays here. Auth guard is active.</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="page" id="page-settings">
+          <div class="page-header">
+            <div>
+              <div class="page-title">Settings</div>
+              <div class="page-sub">Update profile and grading preferences.</div>
+            </div>
+          </div>
+          <article class="card">
+            <div class="card-body">
+              <p class="placeholder-text">Settings UI stays here. Auth guard is active.</p>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+          <button type="button" class="bnav-item active" data-page-target="dashboard">Dashboard</button>
+          <button type="button" class="bnav-item" data-page-target="schedules">Schedules</button>
+          <button type="button" class="bnav-item" data-page-target="students">Students</button>
+          <button type="button" class="bnav-item" data-page-target="assessments">Assessments</button>
+          <button type="button" class="bnav-item" data-page-target="attendance">Attendance</button>
+          <button type="button" class="bnav-item" data-page-target="grades">Grades</button>
+          <button type="button" class="bnav-item" data-page-target="setup">Setup</button>
+          <button type="button" class="bnav-item" data-page-target="settings">Settings</button>
+        </div>
+      </nav>
+    </div>
+
+    <div class="modal-overlay" id="logout-modal" hidden>
       <div class="modal">
-        <div class="modal-header"><div class="modal-title">New Schedule</div><button class="close-btn" onclick="closeModal('modal-schedule')">✕</button></div>
-        <div class="modal-body"><div class="form-grid">
-          <div class="form-group full"><label>Subject Name</label><input type="text" placeholder="e.g. Mathematics 10"></div>
-          <div class="form-group"><label>Section</label><input type="text" placeholder="e.g. Section A"></div>
-          <div class="form-group"><label>School Year</label><select><option>2024–2025</option><option>2023–2024</option></select></div>
-          <div class="form-group full"><label>Semester</label><select><option>1st Semester</option><option>2nd Semester</option></select></div>
-          <div class="form-group"><label>Grading Template</label><select><option>Standard (Q30/A40/E30)</option><option>Exam-Heavy</option><option>Activity-Based</option></select></div>
-          <div class="form-group"><label>Room / Notes</label><input type="text" placeholder="Optional"></div>
-        </div></div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-schedule')">Cancel</button><button class="btn btn-primary">Create Schedule</button></div>
+        <div class="modal-header">
+          <div class="modal-title">Logout</div>
+          <button type="button" class="close-btn" data-action="cancel-logout" aria-label="Close logout confirmation">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-copy">Are you sure you want to log out?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-action="cancel-logout">Cancel</button>
+          <button type="button" class="btn btn-primary" id="confirm-logout-btn">Confirm logout</button>
+        </div>
       </div>
     </div>
 
-    <div class="modal-overlay" id="modal-student" onclick="closeModalOutside(event,'modal-student')">
-      <div class="modal">
-        <div class="modal-header"><div class="modal-title">Add Student</div><button class="close-btn" onclick="closeModal('modal-student')">✕</button></div>
-        <div class="modal-body"><div class="form-grid">
-          <div class="form-group full"><label>Student ID</label><input type="text" placeholder="e.g. 2024-0005"></div>
-          <div class="form-group"><label>First Name</label><input type="text" placeholder="First name"></div>
-          <div class="form-group"><label>Last Name</label><input type="text" placeholder="Last name"></div>
-          <div class="form-group"><label>Middle Name</label><input type="text" placeholder="Optional"></div>
-          <div class="form-group"><label>Gender</label><select><option>Male</option><option>Female</option></select></div>
-          <div class="form-group full"><label>Contact Number</label><input type="text" placeholder="Optional"></div>
-        </div></div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-student')">Cancel</button><button class="btn btn-primary">Add Student</button></div>
-      </div>
-    </div>
-
-    <div class="modal-overlay" id="modal-enroll" onclick="closeModalOutside(event,'modal-enroll')">
-      <div class="modal">
-        <div class="modal-header"><div class="modal-title">Enroll Student</div><button class="close-btn" onclick="closeModal('modal-enroll')">✕</button></div>
-        <div class="modal-body"><div class="form-grid">
-          <div class="form-group full"><label>Select Student</label><select><option>Juan dela Cruz (2024-0001)</option><option>Maria Santos (2024-0002)</option><option>Pedro Reyes (2024-0003)</option></select></div>
-          <div class="form-group full"><label>Select Schedule</label><select><option>Mathematics 10 – Section A</option><option>Science 9 – Section B</option><option>English 11 – Section C</option></select></div>
-        </div></div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-enroll')">Cancel</button><button class="btn btn-primary">Enroll</button></div>
-      </div>
-    </div>
-
-    <div class="modal-overlay" id="modal-assessment" onclick="closeModalOutside(event,'modal-assessment')">
-      <div class="modal">
-        <div class="modal-header"><div class="modal-title">New Assessment</div><button class="close-btn" onclick="closeModal('modal-assessment')">✕</button></div>
-        <div class="modal-body"><div class="form-grid">
-          <div class="form-group full"><label>Assessment Name</label><input type="text" placeholder="e.g. Quiz 1, Midterm Exam"></div>
-          <div class="form-group"><label>Type</label><select><option>Quiz</option><option>Exam</option><option>Activity</option></select></div>
-          <div class="form-group"><label>Max Score</label><input type="number" placeholder="100" min="1"></div>
-          <div class="form-group"><label>Schedule</label><select><option>Mathematics 10 – Section A</option><option>Science 9 – Section B</option></select></div>
-          <div class="form-group"><label>Period</label><select><option>Prelim</option><option>Midterm</option><option>Prefinal</option><option>Final</option></select></div>
-          <div class="form-group full"><label>Date Given</label><input type="date"></div>
-        </div></div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-assessment')">Cancel</button><button class="btn btn-primary">Create Assessment</button></div>
-      </div>
-    </div>
-
-
-    <script src="/static/js/script.js"></script>
+    <script src="{% static 'js/dashboard.js' %}" defer></script>
   </body>
 </html>
