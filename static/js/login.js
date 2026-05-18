@@ -20,19 +20,30 @@ function setAccessToken(access) {
 
 function setRefreshToken(refresh) {
   if (refresh) {
-    localStorage.setItem(REFRESH_STORAGE_KEY, refresh);
+    sessionStorage.setItem(REFRESH_STORAGE_KEY, refresh);
+    localStorage.removeItem(REFRESH_STORAGE_KEY);
   } else {
+    sessionStorage.removeItem(REFRESH_STORAGE_KEY);
     localStorage.removeItem(REFRESH_STORAGE_KEY);
   }
 }
 
 function clearTokens() {
   setAccessToken(null);
+  sessionStorage.removeItem(REFRESH_STORAGE_KEY);
   localStorage.removeItem(REFRESH_STORAGE_KEY);
 }
 
 function getRefreshToken() {
-  return localStorage.getItem(REFRESH_STORAGE_KEY);
+  const sessionRefresh = sessionStorage.getItem(REFRESH_STORAGE_KEY);
+  if (sessionRefresh) return sessionRefresh;
+
+  const legacyRefresh = localStorage.getItem(REFRESH_STORAGE_KEY);
+  if (legacyRefresh) {
+    sessionStorage.setItem(REFRESH_STORAGE_KEY, legacyRefresh);
+    localStorage.removeItem(REFRESH_STORAGE_KEY);
+  }
+  return legacyRefresh;
 }
 
 async function safeJson(response) {

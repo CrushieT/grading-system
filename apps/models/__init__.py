@@ -1,4 +1,4 @@
-from .choices import AssessmentType
+from .choices import AssessmentType, WeekDay
 from .user import User
 from .school_structure import SchoolYear, Semester, SchoolYearSemester
 from .subject_section import Subject, Section

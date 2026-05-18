@@ -15,6 +15,7 @@ from apps.services.setup_service import (
     ensure_school_year_deletable,
     ensure_school_year_semester_deletable,
     ensure_semester_deletable,
+    get_grade_period_queryset,
 )
 
 
@@ -208,46 +209,51 @@ class GradePeriodListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        queryset = Period.objects.all().order_by("position", "id")
-        serializer = GradePeriodSerializer(queryset, many=True)
+        queryset = get_grade_period_queryset(request.user).order_by("position", "id")
+        serializer = GradePeriodSerializer(queryset, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = GradePeriodSerializer(data=request.data)
+        serializer = GradePeriodSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         period = serializer.save()
-        out = GradePeriodSerializer(period)
+        out = GradePeriodSerializer(period, context={"request": request})
         return Response(out.data, status=status.HTTP_201_CREATED)
 
 
 class GradePeriodDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_object(self, pk):
-        return Period.objects.filter(id=pk).first()
+    def get_object(self, request, pk):
+        return get_grade_period_queryset(request.user).filter(id=pk).first()
 
     def get(self, request, pk):
-        period = self.get_object(pk)
+        period = self.get_object(request, pk)
         if period is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = GradePeriodSerializer(period)
+        serializer = GradePeriodSerializer(period, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):
-        period = self.get_object(pk)
+        period = self.get_object(request, pk)
         if period is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = GradePeriodSerializer(period, data=request.data, partial=True)
+        serializer = GradePeriodSerializer(
+            period,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
         serializer.is_valid(raise_exception=True)
         period = serializer.save()
-        out = GradePeriodSerializer(period)
+        out = GradePeriodSerializer(period, context={"request": request})
         return Response(out.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         return self.patch(request, pk)
 
     def delete(self, request, pk):
-        period = self.get_object(pk)
+        period = self.get_object(request, pk)
         if period is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         ensure_period_deletable(period)

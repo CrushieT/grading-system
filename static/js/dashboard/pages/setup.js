@@ -3,6 +3,7 @@
 
   let accessToken = null;
   let refreshPromise = null;
+  let isRedirectingToLogin = false;
 
   const state = {
     schoolYears: [],
@@ -20,11 +21,33 @@
   }
 
   function hardRedirectLogin() {
-    window.location.replace("/login.html");
+    if (isRedirectingToLogin) return;
+    isRedirectingToLogin = true;
+
+    const refresh = getRefreshToken();
+    fetch("/api/auth/logout/", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(refresh ? { refresh } : {}),
+      keepalive: true,
+    }).finally(() => {
+      window.location.replace("/login.html");
+    });
   }
 
   function getRefreshToken() {
-    return localStorage.getItem(REFRESH_STORAGE_KEY);
+    const sessionRefresh = sessionStorage.getItem(REFRESH_STORAGE_KEY);
+    if (sessionRefresh) return sessionRefresh;
+
+    const legacyRefresh = localStorage.getItem(REFRESH_STORAGE_KEY);
+    if (legacyRefresh) {
+      sessionStorage.setItem(REFRESH_STORAGE_KEY, legacyRefresh);
+      localStorage.removeItem(REFRESH_STORAGE_KEY);
+    }
+    return legacyRefresh;
   }
 
   async function safeJson(response) {
@@ -55,7 +78,8 @@
         if (!data.access) return null;
         accessToken = data.access;
         if (data.refresh) {
-          localStorage.setItem(REFRESH_STORAGE_KEY, data.refresh);
+          sessionStorage.setItem(REFRESH_STORAGE_KEY, data.refresh);
+          localStorage.removeItem(REFRESH_STORAGE_KEY);
         }
         return accessToken;
       } catch (_err) {
@@ -92,6 +116,7 @@
     }
 
     if (response.status === 401) {
+      sessionStorage.removeItem(REFRESH_STORAGE_KEY);
       localStorage.removeItem(REFRESH_STORAGE_KEY);
       hardRedirectLogin();
     }
