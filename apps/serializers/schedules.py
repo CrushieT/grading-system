@@ -65,11 +65,15 @@ class ScheduleSerializer(serializers.ModelSerializer):
     teacher_name = serializers.SerializerMethodField()
     subject_name = serializers.CharField(source="subject.name", read_only=True)
     subject_code = serializers.CharField(source="subject.code", read_only=True)
+    section_id = serializers.IntegerField(read_only=True)
     section_name = serializers.CharField(source="section.name", read_only=True)
+    section_year_level = serializers.IntegerField(source="section.year_level", read_only=True)
     school_year_name = serializers.CharField(source="school_year_semester.school_year.name", read_only=True)
     semester_name = serializers.CharField(source="school_year_semester.semester.name", read_only=True)
     period_name = serializers.CharField(source="period.name", read_only=True)
     period_time = serializers.SerializerMethodField()
+    school_year_sem_display = serializers.SerializerMethodField()
+    period_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Schedule
@@ -81,25 +85,33 @@ class ScheduleSerializer(serializers.ModelSerializer):
             "subject_name",
             "subject_code",
             "section",
+            "section_id",
             "section_name",
+            "section_year_level",
             "school_year_sem",
             "school_year_name",
             "semester_name",
+            "school_year_sem_display",
             "day",
             "period",
             "period_name",
             "period_time",
+            "period_display",
         ]
         read_only_fields = [
             "id",
             "teacher_name",
             "subject_name",
             "subject_code",
+            "section_id",
             "section_name",
+            "section_year_level",
             "school_year_name",
             "semester_name",
+            "school_year_sem_display",
             "period_name",
             "period_time",
+            "period_display",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -130,6 +142,17 @@ class ScheduleSerializer(serializers.ModelSerializer):
         start = obj.period.time_start.strftime("%H:%M")
         end = obj.period.time_end.strftime("%H:%M")
         return f"{start}-{end}"
+
+    def get_school_year_sem_display(self, obj):
+        return f"{obj.school_year_semester.school_year.name}, {obj.school_year_semester.semester.name}"
+
+    def get_period_display(self, obj):
+        if not obj.period_id:
+            return "-"
+        period_time = self.get_period_time(obj)
+        if period_time:
+            return f"{obj.period.name} ({period_time})"
+        return obj.period.name
 
     def validate_day(self, value):
         valid_days = {choice.value for choice in WeekDay}

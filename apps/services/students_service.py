@@ -121,12 +121,28 @@ def validate_student_section_owner(user, section):
         raise serializers.ValidationError({"section": "Please select a valid section."})
 
 
+def validate_student_year_level_matches_section(year_level, section):
+    if section is None:
+        return
+    if int(year_level) != int(section.year_level):
+        raise serializers.ValidationError(
+            {"year_level": "Student year level must match the selected section."}
+        )
+
+
+def derive_student_year_level_from_section(section):
+    if section is None:
+        return None
+    return int(section.year_level)
+
+
 def get_student_enrollment_queryset_for_user(user):
     return Record.objects.select_related(
         "student",
         "schedule",
         "schedule__subject",
         "schedule__section",
+        "schedule__period",
         "schedule__school_year_semester__school_year",
         "schedule__school_year_semester__semester",
     ).filter(
@@ -165,10 +181,18 @@ def validate_student_enrollment_owner(user, student, schedule):
 
 
 def validate_student_enrollment_section_match(student, schedule):
-    if student.section_id != schedule.section_id:
+    if student.section_id and schedule.section_id:
+        if student.section_id == schedule.section_id:
+            return
         raise serializers.ValidationError(
-            {"schedule": "Selected schedule does not match the student's section."}
+            {"schedule": "Student is not compatible with this schedule."}
         )
+    if student.year_level and schedule.section and schedule.section.year_level:
+        if int(student.year_level) == int(schedule.section.year_level):
+            return
+    raise serializers.ValidationError(
+        {"schedule": "Student is not compatible with this schedule."}
+    )
 
 
 def validate_duplicate_active_enrollment(student, schedule, exclude_id=None):

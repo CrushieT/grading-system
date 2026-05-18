@@ -2,6 +2,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-left: auto;
 }
 
 .att-btn {
@@ -80,4 +81,23 @@
 
 .muted {
   color: var(--text-3);
+}
+
+#page-attendance #attendance-table-body .setup-sub {
+  text-align: center;
+}
+
+#page-attendance .att-status .att-btn {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#page-attendance .past-att .badge {
+  min-width: 22px;
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  #page-attendance .att-legend {
+    margin-left: 0;
+  }
 }

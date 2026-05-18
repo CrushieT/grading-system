@@ -198,12 +198,140 @@
     return item.full_name || `${item.first_name || ""} ${item.last_name || ""}`.trim();
   }
 
+  function parseId(value) {
+    const num = Number(value);
+    if (!num || Number.isNaN(num)) return null;
+    return num;
+  }
+
+  function getSectionById(sectionId) {
+    const id = parseId(sectionId);
+    if (!id) return null;
+    return state.sections.find(item => item.id === id) || null;
+  }
+
+  function getStudentById(studentId) {
+    const id = parseId(studentId);
+    if (!id) return null;
+    return state.students.find(item => item.id === id) || null;
+  }
+
+  function getScheduleById(scheduleId) {
+    const id = parseId(scheduleId);
+    if (!id) return null;
+    return state.schedules.find(item => item.id === id) || null;
+  }
+
+  function getSectionYearLevel(sectionId) {
+    const section = getSectionById(sectionId);
+    if (!section) return null;
+    return Number(section.year_level) || null;
+  }
+
+  function getStudentYearLevel(student) {
+    if (!student) return null;
+    if (student.section_year_level) return Number(student.section_year_level) || null;
+    if (student.year_level) return Number(student.year_level) || null;
+    return getSectionYearLevel(student.section);
+  }
+
+  function getScheduleSectionId(schedule) {
+    if (!schedule) return null;
+    return parseId(schedule.section_id || schedule.section);
+  }
+
+  function getScheduleYearLevel(schedule) {
+    if (!schedule) return null;
+    if (schedule.section_year_level) return Number(schedule.section_year_level) || null;
+    return getSectionYearLevel(getScheduleSectionId(schedule));
+  }
+
+  function isStudentCompatibleWithSchedule(student, schedule) {
+    if (!student || !schedule) return false;
+
+    const studentSectionId = parseId(student.section);
+    const scheduleSectionId = getScheduleSectionId(schedule);
+    if (studentSectionId && scheduleSectionId) {
+      return studentSectionId === scheduleSectionId;
+    }
+
+    const studentYearLevel = getStudentYearLevel(student);
+    const scheduleYearLevel = getScheduleYearLevel(schedule);
+    if (studentYearLevel && scheduleYearLevel) {
+      return studentYearLevel === scheduleYearLevel;
+    }
+    return false;
+  }
+
+  function isStudentAlreadyEnrolled(studentId, scheduleId) {
+    const sid = parseId(studentId);
+    const scid = parseId(scheduleId);
+    if (!sid || !scid) return false;
+    return state.enrollments.some(
+      item =>
+        item.is_active !== false &&
+        Number(item.student) === sid &&
+        Number(item.schedule) === scid
+    );
+  }
+
+  function getEligibleStudentsForSchedule(scheduleId) {
+    const schedule = getScheduleById(scheduleId);
+    if (!schedule) return [];
+    return state.students.filter(student => {
+      if (!isStudentCompatibleWithSchedule(student, schedule)) return false;
+      return !isStudentAlreadyEnrolled(student.id, schedule.id);
+    });
+  }
+
+  function getEligibleSchedulesForStudent(studentId) {
+    const student = getStudentById(studentId);
+    if (!student) return [];
+    return state.schedules.filter(schedule => {
+      if (!isStudentCompatibleWithSchedule(student, schedule)) return false;
+      return !isStudentAlreadyEnrolled(student.id, schedule.id);
+    });
+  }
+
   function getStudentEnrollmentCount(studentId) {
-    return state.enrollments.filter(item => item.student === studentId && item.is_active).length;
+    return state.enrollments.filter(
+      item => Number(item.student) === Number(studentId) && item.is_active !== false
+    ).length;
   }
 
   function getStudentEnrollments(studentId) {
-    return state.enrollments.filter(item => item.student === studentId && item.is_active);
+    return state.enrollments.filter(
+      item => Number(item.student) === Number(studentId) && item.is_active !== false
+    );
+  }
+
+  function sectionOptionLabel(section) {
+    if (!section) return "";
+    const term = String(section.school_year_sem_label || "").trim();
+    const termLabel = term ? term.replace(" - ", ", ") : "";
+    return termLabel
+      ? `Grade ${section.year_level} - ${section.name} (${termLabel})`
+      : `Grade ${section.year_level} - ${section.name}`;
+  }
+
+  function scheduleOptionLabel(schedule) {
+    if (!schedule) return "";
+    const subject = schedule.subject_name || schedule.subject_code || "Subject";
+    const section = schedule.section_name || "Section";
+    const day = schedule.day || "-";
+    const period =
+      schedule.period_display ||
+      (schedule.period_name
+        ? `${schedule.period_name}${schedule.period_time ? ` (${schedule.period_time})` : ""}`
+        : "");
+    const term =
+      schedule.school_year_sem_display ||
+      [schedule.school_year_name, schedule.semester_name].filter(Boolean).join(", ");
+
+    const parts = [`${subject} - ${section}`, day];
+    if (period) parts.push(period);
+    if (term) parts.push(term);
+    return parts.join(" · ");
   }
 
   function renderStudentTable() {
@@ -211,9 +339,7 @@
     if (!tableBody) return;
 
     if (!state.students.length) {
-      tableBody.innerHTML = `
-        <tr><td colspan="8" class="setup-sub">No students yet.</td></tr>
-      `;
+      tableBody.innerHTML = `<tr><td colspan="8" class="setup-sub">No students yet.</td></tr>`;
       return;
     }
 
@@ -245,9 +371,7 @@
     if (!listEl) return;
 
     if (!state.students.length) {
-      listEl.innerHTML = `
-        <article class="m-card"><div class="setup-sub">No students yet.</div></article>
-      `;
+      listEl.innerHTML = `<article class="m-card"><div class="setup-sub">No students yet.</div></article>`;
       return;
     }
 
@@ -288,32 +412,31 @@
     const studentSectionSelect = getEl("student-section-input");
     if (!sectionFilter || !studentSectionSelect) return;
 
-    const options = state.sections
-      .map(item => `<option value="${item.id}">${item.name}</option>`)
-      .join("");
+    sectionFilter.innerHTML = `
+      <option value="">All Sections</option>
+      ${state.sections
+        .map(item => `<option value="${item.id}">${sectionOptionLabel(item)}</option>`)
+        .join("")}
+    `;
 
-    sectionFilter.innerHTML = `<option value="">All Sections</option>${options}`;
-    studentSectionSelect.innerHTML = `<option value="">Select section</option>${options}`;
+    studentSectionSelect.innerHTML = `
+      <option value="">Select section</option>
+      ${state.sections
+        .map(item => `<option value="${item.id}">${sectionOptionLabel(item)}</option>`)
+        .join("")}
+    `;
   }
 
-  function renderEnrollmentOptions() {
-    const studentSelect = getEl("enroll-student-input");
-    const scheduleSelect = getEl("enroll-schedule-input");
-    if (!studentSelect || !scheduleSelect) return;
-
-    studentSelect.innerHTML = `
-      <option value="">Select student</option>
-      ${state.students.map(item => `<option value="${item.id}">${fullName(item)} (${item.student_id})</option>`).join("")}
-    `;
-
-    scheduleSelect.innerHTML = `
-      <option value="">Select schedule</option>
-      ${state.schedules.map(item => `<option value="${item.id}">${item.subject_name} - ${item.section_name} (${item.day || "-"})</option>`).join("")}
-    `;
+  function setStudentYearLevelFromSection(sectionId) {
+    const yearInput = getEl("student-year-level-input");
+    if (!yearInput) return null;
+    const yearLevel = getSectionYearLevel(sectionId);
+    yearInput.value = yearLevel ? String(yearLevel) : "";
+    return yearLevel;
   }
 
   function renderStudentProfile(studentId) {
-    const student = state.students.find(item => item.id === studentId);
+    const student = getStudentById(studentId);
     if (!student) return;
 
     state.profileStudentId = studentId;
@@ -329,8 +452,8 @@
     const enrolledList = getEl("sv-enrolled-list");
 
     if (avatar) {
-      avatar.classList.remove("avatar-blue", "avatar-green", "avatar-amber", "avatar-red", "avatar-gray");
       const colorClass = colorClassForStudent(student);
+      avatar.style.background = "";
       if (colorClass === "avatar-blue") avatar.style.background = "var(--blue)";
       if (colorClass === "avatar-green") avatar.style.background = "var(--green)";
       if (colorClass === "avatar-amber") avatar.style.background = "var(--amber)";
@@ -394,7 +517,7 @@
     state.students = await fetchList(buildStudentsUrl(), "Failed to load students.");
     renderStudentTable();
     renderStudentMobile();
-    renderEnrollmentOptions();
+    syncEnrollDropdownOptions();
   }
 
   async function loadEnrollmentsList() {
@@ -404,6 +527,7 @@
     );
     renderStudentTable();
     renderStudentMobile();
+    syncEnrollDropdownOptions();
   }
 
   async function reloadStudentsData() {
@@ -439,14 +563,17 @@
     showModalError("student-modal-error", "");
   }
 
-  function resetEnrollModal() {
-    getEl("enroll-student-input").value = "";
-    getEl("enroll-schedule-input").value = "";
-    showModalError("enroll-modal-error", "");
-  }
-
   function closeStudentModal() {
     closeModal("modal-student");
+  }
+
+  function resetEnrollModal() {
+    const studentSelect = getEl("enroll-student-input");
+    const scheduleSelect = getEl("enroll-schedule-input");
+    if (studentSelect) studentSelect.value = "";
+    if (scheduleSelect) scheduleSelect.value = "";
+    showModalError("enroll-modal-error", "");
+    syncEnrollDropdownOptions();
   }
 
   function closeEnrollModal() {
@@ -459,6 +586,84 @@
     showModalError("student-delete-error", "");
   }
 
+  function syncEnrollSaveButton() {
+    const saveBtn = document.querySelector('[data-action="st-save-enroll"]');
+    if (!saveBtn) return;
+    const student = parseId(getEl("enroll-student-input")?.value);
+    const schedule = parseId(getEl("enroll-schedule-input")?.value);
+    if (!student || !schedule) {
+      saveBtn.disabled = true;
+      return;
+    }
+    const studentObj = getStudentById(student);
+    const scheduleObj = getScheduleById(schedule);
+    const valid =
+      !!studentObj &&
+      !!scheduleObj &&
+      isStudentCompatibleWithSchedule(studentObj, scheduleObj) &&
+      !isStudentAlreadyEnrolled(student, schedule);
+    saveBtn.disabled = !valid;
+  }
+
+  function syncEnrollDropdownOptions(changed = "") {
+    const studentSelect = getEl("enroll-student-input");
+    const scheduleSelect = getEl("enroll-schedule-input");
+    if (!studentSelect || !scheduleSelect) return;
+
+    const currentStudentId = parseId(studentSelect.value);
+    const currentScheduleId = parseId(scheduleSelect.value);
+
+    const studentCandidates = currentScheduleId
+      ? getEligibleStudentsForSchedule(currentScheduleId)
+      : [...state.students];
+
+    const scheduleCandidates = currentStudentId
+      ? getEligibleSchedulesForStudent(currentStudentId)
+      : [...state.schedules];
+
+    const selectedStudentStillValid = currentStudentId
+      ? studentCandidates.some(item => item.id === currentStudentId)
+      : false;
+    const selectedScheduleStillValid = currentScheduleId
+      ? scheduleCandidates.some(item => item.id === currentScheduleId)
+      : false;
+
+    const selectedStudentId = selectedStudentStillValid ? currentStudentId : null;
+    const selectedScheduleId = selectedScheduleStillValid ? currentScheduleId : null;
+
+    let studentEmptyText = "Select student";
+    if (currentScheduleId && !studentCandidates.length) {
+      studentEmptyText = "No eligible students available for this schedule.";
+    }
+
+    let scheduleEmptyText = "Select schedule";
+    if (currentStudentId && !scheduleCandidates.length) {
+      scheduleEmptyText = "No available schedules for this student.";
+    }
+
+    studentSelect.innerHTML = `
+      <option value="">${studentEmptyText}</option>
+      ${studentCandidates
+        .map(item => `<option value="${item.id}">${fullName(item)} (${item.student_id})</option>`)
+        .join("")}
+    `;
+
+    scheduleSelect.innerHTML = `
+      <option value="">${scheduleEmptyText}</option>
+      ${scheduleCandidates
+        .map(item => `<option value="${item.id}">${scheduleOptionLabel(item)}</option>`)
+        .join("")}
+    `;
+
+    studentSelect.value = selectedStudentId ? String(selectedStudentId) : "";
+    scheduleSelect.value = selectedScheduleId ? String(selectedScheduleId) : "";
+
+    if (changed) {
+      showModalError("enroll-modal-error", "");
+    }
+    syncEnrollSaveButton();
+  }
+
   async function openStudentCreate() {
     resetStudentModal();
     await loadReferenceLists();
@@ -468,8 +673,10 @@
   async function openStudentEdit(id) {
     resetStudentModal();
     await loadReferenceLists();
-    const student = state.students.find(item => item.id === id);
+
+    const student = getStudentById(id);
     if (!student) return;
+
     state.editingStudentId = id;
     getEl("student-modal-title").textContent = "Edit Student";
     getEl("student-id-input").value = student.student_id || "";
@@ -478,15 +685,16 @@
     getEl("student-last-name-input").value = student.last_name || "";
     getEl("student-gender-input").value = student.gender || "";
     getEl("student-contact-number-input").value = student.contact_number || "";
-    getEl("student-year-level-input").value = student.year_level || "";
     getEl("student-section-input").value = student.section || "";
+    setStudentYearLevelFromSection(student.section);
+
     openModal("modal-student");
   }
 
   async function openEnrollCreate() {
     resetEnrollModal();
-    await loadReferenceLists();
-    await reloadStudentsData();
+    await Promise.all([loadReferenceLists(), reloadStudentsData()]);
+    syncEnrollDropdownOptions();
     openModal("modal-enroll");
   }
 
@@ -497,17 +705,24 @@
     openModal("modal-student-delete");
   }
 
-  async function saveStudent() {
-    const payload = {
+  function getCurrentStudentPayload() {
+    const sectionId = parseId(getEl("student-section-input").value);
+    const derivedYearLevel = sectionId ? getSectionYearLevel(sectionId) : null;
+
+    return {
       student_id: String(getEl("student-id-input").value || "").trim(),
       first_name: String(getEl("student-first-name-input").value || "").trim(),
       middle_name: String(getEl("student-middle-name-input").value || "").trim(),
       last_name: String(getEl("student-last-name-input").value || "").trim(),
       gender: String(getEl("student-gender-input").value || "").trim(),
       contact_number: String(getEl("student-contact-number-input").value || "").trim(),
-      year_level: Number(getEl("student-year-level-input").value),
-      section: Number(getEl("student-section-input").value),
+      year_level: derivedYearLevel,
+      section: sectionId,
     };
+  }
+
+  async function saveStudent() {
+    const payload = getCurrentStudentPayload();
 
     if (!payload.student_id) {
       showModalError("student-modal-error", "Student ID is required.");
@@ -521,12 +736,22 @@
       showModalError("student-modal-error", "Last name is required.");
       return;
     }
-    if (!payload.year_level || Number.isNaN(payload.year_level) || payload.year_level <= 0) {
+    if (!payload.section) {
+      showModalError("student-modal-error", "Please select a section.");
+      return;
+    }
+    if (!payload.year_level || payload.year_level <= 0) {
       showModalError("student-modal-error", "Year level must be greater than 0.");
       return;
     }
-    if (!payload.section || Number.isNaN(payload.section)) {
-      showModalError("student-modal-error", "Please select a section.");
+
+    const section = getSectionById(payload.section);
+    if (!section) {
+      showModalError("student-modal-error", "Please select a valid section.");
+      return;
+    }
+    if (Number(payload.year_level) !== Number(section.year_level)) {
+      showModalError("student-modal-error", "Student year level must match the selected section.");
       return;
     }
 
@@ -537,8 +762,7 @@
     try {
       await sendJson(url, method, payload, "Failed to save student.");
       closeStudentModal();
-      await loadReferenceLists();
-      await reloadStudentsData();
+      await Promise.all([loadReferenceLists(), reloadStudentsData()]);
       showFeedback("Student saved.");
     } catch (err) {
       showModalError("student-modal-error", err.message || "Failed to save student.");
@@ -546,15 +770,30 @@
   }
 
   async function saveEnrollment() {
-    const student = Number(getEl("enroll-student-input").value);
-    const schedule = Number(getEl("enroll-schedule-input").value);
+    const student = parseId(getEl("enroll-student-input").value);
+    const schedule = parseId(getEl("enroll-schedule-input").value);
 
-    if (!student || Number.isNaN(student)) {
+    if (!student) {
       showModalError("enroll-modal-error", "Please select a student.");
       return;
     }
-    if (!schedule || Number.isNaN(schedule)) {
+    if (!schedule) {
       showModalError("enroll-modal-error", "Please select a schedule.");
+      return;
+    }
+
+    const studentObj = getStudentById(student);
+    const scheduleObj = getScheduleById(schedule);
+    if (!studentObj || !scheduleObj) {
+      showModalError("enroll-modal-error", "Please select valid student and schedule.");
+      return;
+    }
+    if (!isStudentCompatibleWithSchedule(studentObj, scheduleObj)) {
+      showModalError("enroll-modal-error", "Student is not compatible with this schedule.");
+      return;
+    }
+    if (isStudentAlreadyEnrolled(student, schedule)) {
+      showModalError("enroll-modal-error", "This student is already enrolled in this schedule.");
       return;
     }
 
@@ -617,6 +856,29 @@
     });
   }
 
+  function setupStudentModalSync() {
+    const sectionSelect = getEl("student-section-input");
+    if (!sectionSelect) return;
+    sectionSelect.addEventListener("change", () => {
+      setStudentYearLevelFromSection(sectionSelect.value);
+      showModalError("student-modal-error", "");
+    });
+  }
+
+  function setupEnrollModalSync() {
+    const studentSelect = getEl("enroll-student-input");
+    const scheduleSelect = getEl("enroll-schedule-input");
+    if (!studentSelect || !scheduleSelect) return;
+
+    studentSelect.addEventListener("change", () => {
+      syncEnrollDropdownOptions("student");
+    });
+
+    scheduleSelect.addEventListener("change", () => {
+      syncEnrollDropdownOptions("schedule");
+    });
+  }
+
   function handleAction(actionEl) {
     const action = actionEl.dataset.action;
     const id = Number(actionEl.dataset.id || "0");
@@ -637,7 +899,7 @@
       openStudentEdit(state.profileStudentId);
     }
     if (action === "st-delete-student") {
-      const student = state.students.find(item => item.id === id);
+      const student = getStudentById(id);
       const label = student ? `${fullName(student)} (${student.student_id})` : "this student";
       openDeleteConfirm(`Delete ${label}?`, {
         url: `/api/students/${id}/`,
@@ -658,10 +920,11 @@
     });
 
     setupFilters();
+    setupStudentModalSync();
+    setupEnrollModalSync();
 
     try {
-      await loadReferenceLists();
-      await reloadStudentsData();
+      await Promise.all([loadReferenceLists(), reloadStudentsData()]);
     } catch (err) {
       showFeedback(err.message || "Failed to load students.", true);
     }
