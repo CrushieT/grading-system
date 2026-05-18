@@ -2,6 +2,7 @@
 
 let accessToken = null;
 let refreshPromise = null;
+let isRedirectingToLogin = false;
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -27,23 +28,48 @@ function setAccessToken(access) {
 
 function setRefreshToken(refresh) {
   if (refresh) {
-    localStorage.setItem(REFRESH_STORAGE_KEY, refresh);
+    sessionStorage.setItem(REFRESH_STORAGE_KEY, refresh);
+    localStorage.removeItem(REFRESH_STORAGE_KEY);
   } else {
+    sessionStorage.removeItem(REFRESH_STORAGE_KEY);
     localStorage.removeItem(REFRESH_STORAGE_KEY);
   }
 }
 
 function clearTokens() {
   setAccessToken(null);
+  sessionStorage.removeItem(REFRESH_STORAGE_KEY);
   localStorage.removeItem(REFRESH_STORAGE_KEY);
 }
 
 function getRefreshToken() {
-  return localStorage.getItem(REFRESH_STORAGE_KEY);
+  const sessionRefresh = sessionStorage.getItem(REFRESH_STORAGE_KEY);
+  if (sessionRefresh) return sessionRefresh;
+
+  const legacyRefresh = localStorage.getItem(REFRESH_STORAGE_KEY);
+  if (legacyRefresh) {
+    sessionStorage.setItem(REFRESH_STORAGE_KEY, legacyRefresh);
+    localStorage.removeItem(REFRESH_STORAGE_KEY);
+  }
+  return legacyRefresh;
 }
 
 function hardRedirectLogin() {
-  window.location.replace("/login.html");
+  if (isRedirectingToLogin) return;
+  isRedirectingToLogin = true;
+
+  const refresh = getRefreshToken();
+  fetch("/api/auth/logout/", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(refresh ? { refresh } : {}),
+    keepalive: true,
+  }).finally(() => {
+    window.location.replace("/login.html");
+  });
 }
 
 async function safeJson(response) {

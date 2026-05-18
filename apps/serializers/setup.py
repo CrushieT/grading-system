@@ -297,8 +297,13 @@ class GradePeriodSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         instance = self.instance
+        request = self.context.get("request")
+        user = request.user if request else (instance.user if instance else None)
         position = attrs.get("position")
         weight = attrs.get("weight")
+
+        if user is None:
+            raise serializers.ValidationError("User context is required.")
 
         if position is None and instance is None:
             raise serializers.ValidationError({"position": "This field is required."})
@@ -309,6 +314,7 @@ class GradePeriodSerializer(serializers.ModelSerializer):
                     {"position": "Order must be between 1 and 4."}
                 )
             validate_period_position_unique(
+                user=user,
                 position=position,
                 exclude_id=instance.id if instance else None,
             )
@@ -317,8 +323,16 @@ class GradePeriodSerializer(serializers.ModelSerializer):
         if effective_weight is None:
             effective_weight = instance.weight if instance else Decimal("0")
         validate_period_total_weight(
+            user=user,
             weight=effective_weight,
             exclude_id=instance.id if instance else None,
         )
 
         return attrs
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = request.user if request else None
+        if user is None:
+            raise serializers.ValidationError("User context is required.")
+        return Period.objects.create(user=user, **validated_data)

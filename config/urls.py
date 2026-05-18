@@ -16,4 +16,6 @@ urlpatterns = [
     # auth api
     path('api/auth/', include('apps.urls.auth')),
     path('api/', include('apps.urls.setup')),
+    path('api/', include('apps.urls.students')),
+    path('api/', include('apps.urls.schedules')),
 ]

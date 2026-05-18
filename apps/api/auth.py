@@ -22,6 +22,7 @@ class LoginAPIView(APIView):
         user = serializer.validated_data["user"]
 
         django_login(request, user)
+        request.session.set_expiry(0)
 
         tokens = issue_tokens(user)
         return Response(
@@ -43,6 +44,7 @@ class RegisterAPIView(APIView):
         user = created["user"]
 
         django_login(request, user)
+        request.session.set_expiry(0)
 
         tokens = issue_tokens(user)
         return Response(

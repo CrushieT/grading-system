@@ -13,6 +13,7 @@ from apps.models import (
     Semester,
     Subject,
 )
+from apps.services.setup_service import ensure_default_periods_for_user
 
 
 def serialize_user(user):
@@ -70,7 +71,12 @@ def register_teacher_account(validated_data):
         is_active=True,
     )
 
-    default_subject = Subject.objects.create(user=user, name=f"{school_name} - General")
+    default_subject = Subject.objects.create(
+        user=user,
+        code="GEN-101",
+        name=f"{school_name} - General",
+        units=3,
+    )
 
     grading_profiles = {
         "standard": {
@@ -111,6 +117,8 @@ def register_teacher_account(validated_data):
             for item_type, weight in profile["items"]
         ]
     )
+
+    ensure_default_periods_for_user(user, grading_key=grading_key)
 
     return {
         "user": user,

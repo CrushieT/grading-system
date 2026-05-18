@@ -17,6 +17,39 @@ from apps.models import (
 
 
 SCHOOL_YEAR_NAME_PATTERN = re.compile(r"^\s*(\d{4})\s*-\s*(\d{4})\s*$")
+DEFAULT_GRADE_PERIODS = (
+    ("Prelim", 1, Decimal("25.00")),
+    ("Midterm", 2, Decimal("25.00")),
+    ("Prefinal", 3, Decimal("25.00")),
+    ("Final", 4, Decimal("25.00")),
+)
+GRADE_PROFILE_PERIOD_PRESETS = {
+    "standard": (
+        ("Prelim", 1, Decimal("25.00")),
+        ("Midterm", 2, Decimal("25.00")),
+        ("Prefinal", 3, Decimal("25.00")),
+        ("Final", 4, Decimal("25.00")),
+    ),
+    "exam-heavy": (
+        ("Prelim", 1, Decimal("20.00")),
+        ("Midterm", 2, Decimal("20.00")),
+        ("Prefinal", 3, Decimal("25.00")),
+        ("Final", 4, Decimal("35.00")),
+    ),
+    "activity": (
+        ("Prelim", 1, Decimal("30.00")),
+        ("Midterm", 2, Decimal("30.00")),
+        ("Prefinal", 3, Decimal("20.00")),
+        ("Final", 4, Decimal("20.00")),
+    ),
+}
+
+def get_grade_period_queryset(user):
+    return Period.objects.filter(
+        user=user,
+        time_start__isnull=True,
+        time_end__isnull=True,
+    )
 
 
 def parse_school_year_name(name):
@@ -148,8 +181,8 @@ def ensure_period_deletable(period):
         )
 
 
-def validate_period_position_unique(position, exclude_id=None):
-    qs = Period.objects.filter(position=position)
+def validate_period_position_unique(user, position, exclude_id=None):
+    qs = get_grade_period_queryset(user).filter(position=position)
     if exclude_id is not None:
         qs = qs.exclude(id=exclude_id)
     if qs.exists():
@@ -158,11 +191,30 @@ def validate_period_position_unique(position, exclude_id=None):
         )
 
 
-def validate_period_total_weight(weight, exclude_id=None):
+def validate_period_total_weight(user, weight, exclude_id=None):
     weight = Decimal(weight)
-    total = Period.objects.exclude(id=exclude_id).values_list("weight", flat=True)
+    total = get_grade_period_queryset(user).exclude(id=exclude_id).values_list("weight", flat=True)
     running = sum((Decimal(value) for value in total), Decimal("0"))
     if running + weight > Decimal("100"):
         raise serializers.ValidationError(
             {"weight": "Total grading period weight cannot exceed 100."}
         )
+
+
+def ensure_default_periods_for_user(user, grading_key=None):
+    if get_grade_period_queryset(user).exists():
+        return
+
+    period_preset = GRADE_PROFILE_PERIOD_PRESETS.get(grading_key, DEFAULT_GRADE_PERIODS)
+    Period.objects.bulk_create(
+        [
+            Period(
+                user=user,
+                name=name,
+                position=position,
+                weight=weight,
+                is_active=True,
+            )
+            for name, position, weight in period_preset
+        ]
+    )
