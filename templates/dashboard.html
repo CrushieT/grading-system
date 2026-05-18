@@ -394,31 +394,47 @@
 
     <div class="modal-overlay" id="modal-student" hidden>
       <div class="modal">
-        <div class="modal-header"><div class="modal-title">Add Student</div><button type="button" class="close-btn" data-action="close-modal" data-modal-target="modal-student">x</button></div>
+        <div class="modal-header">
+          <div class="modal-title" id="student-modal-title">Add Student</div>
+          <button type="button" class="close-btn" data-action="st-close-student-modal">x</button>
+        </div>
         <div class="modal-body">
           <div class="form-grid">
-            <div class="form-group full"><label>Student ID</label><input type="text" placeholder="e.g. 2024-0005"></div>
-            <div class="form-group"><label>First Name</label><input type="text" placeholder="First name"></div>
-            <div class="form-group"><label>Last Name</label><input type="text" placeholder="Last name"></div>
-            <div class="form-group"><label>Middle Name</label><input type="text" placeholder="Optional"></div>
-            <div class="form-group"><label>Gender</label><select><option>Male</option><option>Female</option></select></div>
-            <div class="form-group full"><label>Contact Number</label><input type="text" placeholder="Optional"></div>
+            <div class="form-group full"><label>Student ID</label><input type="text" id="student-id-input" placeholder="e.g. 2024-0005"></div>
+            <div class="form-group"><label>First Name</label><input type="text" id="student-first-name-input" placeholder="First name"></div>
+            <div class="form-group"><label>Middle Name</label><input type="text" id="student-middle-name-input" placeholder="Optional"></div>
+            <div class="form-group"><label>Last Name</label><input type="text" id="student-last-name-input" placeholder="Last name"></div>
+            <div class="form-group"><label>Gender</label><select id="student-gender-input"><option value="">Select gender (optional)</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
+            <div class="form-group"><label>Year Level</label><input type="number" id="student-year-level-input" min="1" step="1" placeholder="10"></div>
+            <div class="form-group"><label>Section</label><select id="student-section-input"><option value="">Select section</option></select></div>
+            <div class="form-group full"><label>Contact Number</label><input type="text" id="student-contact-number-input" placeholder="Optional"></div>
           </div>
+          <div class="setup-modal-error" id="student-modal-error" hidden></div>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal-target="modal-student">Cancel</button><button type="button" class="btn btn-primary">Add Student</button></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-action="st-close-student-modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-action="st-save-student">Save</button>
+        </div>
       </div>
     </div>
 
     <div class="modal-overlay" id="modal-enroll" hidden>
       <div class="modal">
-        <div class="modal-header"><div class="modal-title">Enroll Student</div><button type="button" class="close-btn" data-action="close-modal" data-modal-target="modal-enroll">x</button></div>
+        <div class="modal-header">
+          <div class="modal-title">Enroll Student</div>
+          <button type="button" class="close-btn" data-action="st-close-enroll-modal">x</button>
+        </div>
         <div class="modal-body">
           <div class="form-grid">
-            <div class="form-group full"><label>Select Student</label><select><option>Juan dela Cruz (2024-0001)</option><option>Maria Santos (2024-0002)</option><option>Pedro Reyes (2024-0003)</option></select></div>
-            <div class="form-group full"><label>Select Schedule</label><select><option>Mathematics 10 - Section A</option><option>Science 9 - Section B</option><option>English 11 - Section C</option></select></div>
+            <div class="form-group full"><label>Select Student</label><select id="enroll-student-input"><option value="">Select student</option></select></div>
+            <div class="form-group full"><label>Select Schedule</label><select id="enroll-schedule-input"><option value="">Select schedule</option></select></div>
           </div>
+          <div class="setup-modal-error" id="enroll-modal-error" hidden></div>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal-target="modal-enroll">Cancel</button><button type="button" class="btn btn-primary">Enroll</button></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-action="st-close-enroll-modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-action="st-save-enroll">Enroll</button>
+        </div>
       </div>
     </div>
 
@@ -478,30 +494,24 @@
         <div class="modal-header"><div class="modal-title">Student Profile</div><button type="button" class="close-btn" data-action="close-modal" data-modal-target="modal-student-view">x</button></div>
         <div class="modal-body">
           <div class="profile-header">
-            <div class="profile-avatar-lg" id="sv-avatar"><span id="sv-initials">JD</span></div>
-            <div><div class="profile-name" id="sv-name">Juan dela Cruz</div><div class="profile-sub" id="sv-schedules">3 schedules</div></div>
+            <div class="profile-avatar-lg" id="sv-avatar"><span id="sv-initials">ST</span></div>
+            <div><div class="profile-name" id="sv-name">Student Name</div><div class="profile-sub" id="sv-schedules">0 schedules</div></div>
           </div>
           <div class="profile-stat-grid">
-            <div class="profile-stat"><div class="profile-stat-val value-green" id="sv-avg">88.4</div><div class="profile-stat-lbl">Avg Grade</div></div>
-            <div class="profile-stat"><div class="profile-stat-val value-green" id="sv-att-pct">94%</div><div class="profile-stat-lbl">Attendance</div></div>
-            <div class="profile-stat"><div class="profile-stat-val">3</div><div class="profile-stat-lbl">Subjects</div></div>
+            <div class="profile-stat"><div class="profile-stat-val mono subtle" id="sv-student-id">-</div><div class="profile-stat-lbl">Student ID</div></div>
+            <div class="profile-stat"><div class="profile-stat-val" id="sv-year-level">-</div><div class="profile-stat-lbl">Year Level</div></div>
+            <div class="profile-stat"><div class="profile-stat-val" id="sv-section">-</div><div class="profile-stat-lbl">Section</div></div>
           </div>
-          <div class="section-label">Attendance</div>
-          <div class="att-bar-track"><div class="att-bar-fill" id="sv-att-bar" style="width:94%;"></div></div>
-          <div class="att-row"><span class="subtle">Attendance rate</span><span id="sv-att-pct2" class="mono">94%</span></div>
-          <div class="att-breakdown">
-            <div class="att-breakdown-item"><span class="att-btn p">P</span> Present - 17 days</div>
-            <div class="att-breakdown-item"><span class="att-btn a">A</span> Absent - 1 day</div>
-            <div class="att-breakdown-item"><span class="att-btn l">L</span> Late - 0 days</div>
+          <div class="section-label">Enrolled Schedules</div>
+          <div class="summary-block" id="sv-enrolled-list">
+            <div class="summary-row"><span>No schedules enrolled yet.</span></div>
           </div>
+          <div class="section-label">Attendance Summary</div>
+          <div class="summary-block"><div class="summary-row"><span>Attendance</span><span class="mono subtle">--</span></div></div>
           <div class="section-label">Grade Summary</div>
-          <div class="summary-block">
-            <div class="summary-row"><span>Mathematics 10</span><span class="mono value-green">88.4</span></div>
-            <div class="summary-row"><span>Science 9</span><span class="mono value-green">85.0</span></div>
-            <div class="summary-row"><span>English 11</span><span class="mono value-green">91.7</span></div>
-          </div>
+          <div class="summary-block"><div class="summary-row"><span>Average Grade</span><span class="mono subtle">--</span></div></div>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal-target="modal-student-view">Close</button><button type="button" class="btn btn-ghost">Edit Student</button></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal-target="modal-student-view">Close</button><button type="button" class="btn btn-ghost" data-action="st-edit-from-profile">Edit Student</button></div>
       </div>
     </div>
 

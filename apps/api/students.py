@@ -4,12 +4,23 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.models import Section, Subject
-from apps.serializers.students import SectionSerializer, SubjectSerializer
+from apps.serializers.students import (
+    SectionSerializer,
+    StudentEnrollmentSerializer,
+    StudentSerializer,
+    SubjectSerializer,
+)
 from apps.services.students_service import (
+    apply_student_enrollment_filters,
+    apply_student_filters,
     apply_section_filters,
     apply_subject_search,
+    ensure_enrollment_deletable,
     ensure_section_deletable,
+    ensure_student_deletable,
     ensure_subject_deletable,
+    get_student_enrollment_queryset_for_user,
+    get_student_queryset_for_user,
 )
 
 
@@ -146,4 +157,99 @@ class SectionDetailAPIView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         ensure_section_deletable(section)
         section.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class StudentListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self, request):
+        queryset = get_student_queryset_for_user(request.user).order_by("last_name", "first_name", "id")
+        return apply_student_filters(queryset, request.query_params)
+
+    def get(self, request):
+        queryset = self.get_queryset(request)
+        serializer = StudentSerializer(queryset, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = StudentSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        student = serializer.save()
+        out = StudentSerializer(student, context={"request": request})
+        return Response(out.data, status=status.HTTP_201_CREATED)
+
+
+class StudentDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, request, pk):
+        return get_student_queryset_for_user(request.user).filter(id=pk).first()
+
+    def get(self, request, pk):
+        student = self.get_object(request, pk)
+        if student is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = StudentSerializer(student, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        student = self.get_object(request, pk)
+        if student is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = StudentSerializer(
+            student,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        student = serializer.save()
+        out = StudentSerializer(student, context={"request": request})
+        return Response(out.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        return self.patch(request, pk)
+
+    def delete(self, request, pk):
+        student = self.get_object(request, pk)
+        if student is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        ensure_student_deletable(student)
+        student.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class StudentEnrollmentListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self, request):
+        queryset = get_student_enrollment_queryset_for_user(request.user).order_by("-date_enrolled", "-id")
+        return apply_student_enrollment_filters(queryset, request.query_params)
+
+    def get(self, request):
+        queryset = self.get_queryset(request)
+        serializer = StudentEnrollmentSerializer(queryset, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = StudentEnrollmentSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        enrollment = serializer.save()
+        out = StudentEnrollmentSerializer(enrollment, context={"request": request})
+        return Response(out.data, status=status.HTTP_201_CREATED)
+
+
+class StudentEnrollmentDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, request, pk):
+        return get_student_enrollment_queryset_for_user(request.user).filter(id=pk).first()
+
+    def delete(self, request, pk):
+        enrollment = self.get_object(request, pk)
+        if enrollment is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        ensure_enrollment_deletable(enrollment)
+        enrollment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
