@@ -1,0 +1,95 @@
+<section class="page" id="page-assessments">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Assessments</div>
+      <div class="page-sub">Quizzes, exams, and activities.</div>
+    </div>
+    <button type="button" class="btn btn-primary" data-action="open-modal" data-modal-target="modal-assessment">+ New</button>
+  </div>
+
+  <div class="filter-bar">
+    <select class="filter-select">
+      <option>Mathematics 10 - Section A</option>
+      <option>Science 9 - Section B</option>
+    </select>
+    <select class="filter-select">
+      <option>Prelim</option>
+      <option>Midterm</option>
+      <option>Prefinal</option>
+      <option>Final</option>
+    </select>
+  </div>
+
+  <article class="card desktop-table">
+    <div class="card-header">
+      <span class="card-title">Mathematics 10 - Section A - Prelim</span>
+      <span class="badge badge-gray">34 students</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Assessment</th>
+            <th>Type</th>
+            <th>Max</th>
+            <th>Avg</th>
+            <th>Submitted</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Quiz 1</strong></td>
+            <td><span class="badge badge-blue">Quiz</span></td>
+            <td class="mono">50</td>
+            <td class="mono value-green">43.2</td>
+            <td><span class="badge badge-green">34/34</span></td>
+            <td class="table-actions"><button type="button" class="btn btn-ghost btn-xs" data-action="open-scores" data-assessment="Quiz 1" data-max-score="50">Scores</button><button type="button" class="btn btn-ghost btn-xs">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Activity 1</strong></td>
+            <td><span class="badge badge-green">Activity</span></td>
+            <td class="mono">100</td>
+            <td class="mono value-green">87.5</td>
+            <td><span class="badge badge-green">34/34</span></td>
+            <td class="table-actions"><button type="button" class="btn btn-ghost btn-xs" data-action="open-scores" data-assessment="Activity 1" data-max-score="100">Scores</button><button type="button" class="btn btn-ghost btn-xs">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Quiz 2</strong></td>
+            <td><span class="badge badge-blue">Quiz</span></td>
+            <td class="mono">50</td>
+            <td class="mono value-amber">38.1</td>
+            <td><span class="badge badge-amber">30/34</span></td>
+            <td class="table-actions"><button type="button" class="btn btn-ghost btn-xs" data-action="open-scores" data-assessment="Quiz 2" data-max-score="50">Scores</button><button type="button" class="btn btn-ghost btn-xs">Edit</button></td>
+          </tr>
+          <tr>
+            <td><strong>Prelim Exam</strong></td>
+            <td><span class="badge badge-red">Exam</span></td>
+            <td class="mono">100</td>
+            <td class="mono value-amber">75.3</td>
+            <td><span class="badge badge-amber">32/34</span></td>
+            <td class="table-actions"><button type="button" class="btn btn-ghost btn-xs" data-action="open-scores" data-assessment="Prelim Exam" data-max-score="100">Scores</button><button type="button" class="btn btn-ghost btn-xs">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <div class="mobile-card-list">
+    <article class="m-card">
+      <div class="m-card-row"><div><div class="m-card-title">Quiz 1</div><div class="m-card-sub">Math 10 - Sec A - Prelim</div></div><span class="badge badge-blue">Quiz</span></div>
+      <div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Max</span><span class="m-meta-value mono">50</span></div><div class="m-meta-item"><span class="m-meta-label">Avg</span><span class="m-meta-value mono value-green">43.2</span></div><div class="m-meta-item"><span class="m-meta-label">Submitted</span><span class="m-meta-value"><span class="badge badge-green">34/34</span></span></div></div>
+      <div class="m-card-actions"><button type="button" class="btn btn-ghost" data-action="open-scores" data-assessment="Quiz 1" data-max-score="50">Scores</button><button type="button" class="btn btn-ghost">Edit</button></div>
+    </article>
+    <article class="m-card">
+      <div class="m-card-row"><div><div class="m-card-title">Activity 1</div><div class="m-card-sub">Math 10 - Sec A - Prelim</div></div><span class="badge badge-green">Activity</span></div>
+      <div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Max</span><span class="m-meta-value mono">100</span></div><div class="m-meta-item"><span class="m-meta-label">Avg</span><span class="m-meta-value mono value-green">87.5</span></div><div class="m-meta-item"><span class="m-meta-label">Submitted</span><span class="m-meta-value"><span class="badge badge-green">34/34</span></span></div></div>
+      <div class="m-card-actions"><button type="button" class="btn btn-ghost" data-action="open-scores" data-assessment="Activity 1" data-max-score="100">Scores</button><button type="button" class="btn btn-ghost">Edit</button></div>
+    </article>
+    <article class="m-card">
+      <div class="m-card-row"><div><div class="m-card-title">Prelim Exam</div><div class="m-card-sub">Math 10 - Sec A - Prelim</div></div><span class="badge badge-red">Exam</span></div>
+      <div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Max</span><span class="m-meta-value mono">100</span></div><div class="m-meta-item"><span class="m-meta-label">Avg</span><span class="m-meta-value mono value-amber">75.3</span></div><div class="m-meta-item"><span class="m-meta-label">Submitted</span><span class="m-meta-value"><span class="badge badge-amber">32/34</span></span></div></div>
+      <div class="m-card-actions"><button type="button" class="btn btn-ghost" data-action="open-scores" data-assessment="Prelim Exam" data-max-score="100">Scores</button><button type="button" class="btn btn-ghost">Edit</button></div>
+    </article>
+  </div>
+</section>

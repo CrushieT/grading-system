@@ -1,0 +1,88 @@
+<section class="page" id="page-attendance">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Attendance</div>
+      <div class="page-sub">Daily tracking per schedule.</div>
+    </div>
+    <button type="button" class="btn btn-primary">Save</button>
+  </div>
+
+  <div class="filter-bar">
+    <select class="filter-select">
+      <option>Mathematics 10 - Section A</option>
+      <option>Science 9 - Section B</option>
+    </select>
+    <input type="date" value="2024-11-05" class="filter-select">
+    <div class="att-legend"><span class="att-btn p">P</span><span class="att-btn a">A</span><span class="att-btn l">L</span><span class="att-btn e">E</span></div>
+  </div>
+
+  <article class="card desktop-table">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Nov 1</th>
+            <th>Nov 4</th>
+            <th>Nov 5 (Today)</th>
+            <th>Nov 6</th>
+            <th>Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Juan dela Cruz</td>
+            <td><span class="badge badge-green">P</span></td>
+            <td><span class="badge badge-green">P</span></td>
+            <td><div class="att-status"><button type="button" class="att-btn p active-p" data-action="set-att" data-att-state="p">P</button><button type="button" class="att-btn a" data-action="set-att" data-att-state="a">A</button><button type="button" class="att-btn l" data-action="set-att" data-att-state="l">L</button><button type="button" class="att-btn e" data-action="set-att" data-att-state="e">E</button></div></td>
+            <td><span class="muted">-</span></td>
+            <td><span class="badge badge-green">100%</span></td>
+          </tr>
+          <tr>
+            <td>Maria Santos</td>
+            <td><span class="badge badge-green">P</span></td>
+            <td><span class="badge badge-green">P</span></td>
+            <td><div class="att-status"><button type="button" class="att-btn p active-p" data-action="set-att" data-att-state="p">P</button><button type="button" class="att-btn a" data-action="set-att" data-att-state="a">A</button><button type="button" class="att-btn l" data-action="set-att" data-att-state="l">L</button><button type="button" class="att-btn e" data-action="set-att" data-att-state="e">E</button></div></td>
+            <td><span class="muted">-</span></td>
+            <td><span class="badge badge-green">100%</span></td>
+          </tr>
+          <tr>
+            <td>Pedro Reyes</td>
+            <td><span class="badge badge-red">A</span></td>
+            <td><span class="badge badge-amber">L</span></td>
+            <td><div class="att-status"><button type="button" class="att-btn p" data-action="set-att" data-att-state="p">P</button><button type="button" class="att-btn a" data-action="set-att" data-att-state="a">A</button><button type="button" class="att-btn l active-l" data-action="set-att" data-att-state="l">L</button><button type="button" class="att-btn e" data-action="set-att" data-att-state="e">E</button></div></td>
+            <td><span class="muted">-</span></td>
+            <td><span class="badge badge-red">33%</span></td>
+          </tr>
+          <tr>
+            <td>Ana Lim</td>
+            <td><span class="badge badge-green">P</span></td>
+            <td><span class="badge badge-blue">E</span></td>
+            <td><div class="att-status"><button type="button" class="att-btn p" data-action="set-att" data-att-state="p">P</button><button type="button" class="att-btn a" data-action="set-att" data-att-state="a">A</button><button type="button" class="att-btn l" data-action="set-att" data-att-state="l">L</button><button type="button" class="att-btn e active-e" data-action="set-att" data-att-state="e">E</button></div></td>
+            <td><span class="muted">-</span></td>
+            <td><span class="badge badge-amber">67%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <div class="mobile-card-list">
+    <article class="m-card">
+      <div class="m-card-row"><div><div class="m-card-title">Juan dela Cruz</div><div class="past-att"><span class="badge badge-green">P</span><span class="badge badge-green">P</span></div></div><span class="badge badge-green">100%</span></div>
+      <div class="today-att"><div class="today-label">Today (Nov 5)</div><div class="att-status"><button type="button" class="att-btn p active-p" data-action="set-att" data-att-state="p">P</button><button type="button" class="att-btn a" data-action="set-att" data-att-state="a">A</button><button type="button" class="att-btn l" data-action="set-att" data-att-state="l">L</button><button type="button" class="att-btn e" data-action="set-att" data-att-state="e">E</button></div></div>
+    </article>
+    <article class="m-card">
+      <div class="m-card-row"><div><div class="m-card-title">Maria Santos</div><div class="past-att"><span class="badge badge-green">P</span><span class="badge badge-green">P</span></div></div><span class="badge badge-green">100%</span></div>
+      <div class="today-att"><div class="today-label">Today (Nov 5)</div><div class="att-status"><button type="button" class="att-btn p active-p" data-action="set-att" data-att-state="p">P</button><button type="button" class="att-btn a" data-action="set-att" data-att-state="a">A</button><button type="button" class="att-btn l" data-action="set-att" data-att-state="l">L</button><button type="button" class="att-btn e" data-action="set-att" data-att-state="e">E</button></div></div>
+    </article>
+    <article class="m-card">
+      <div class="m-card-row"><div><div class="m-card-title">Pedro Reyes</div><div class="past-att"><span class="badge badge-red">A</span><span class="badge badge-amber">L</span></div></div><span class="badge badge-red">33%</span></div>
+      <div class="today-att"><div class="today-label">Today (Nov 5)</div><div class="att-status"><button type="button" class="att-btn p" data-action="set-att" data-att-state="p">P</button><button type="button" class="att-btn a" data-action="set-att" data-att-state="a">A</button><button type="button" class="att-btn l active-l" data-action="set-att" data-att-state="l">L</button><button type="button" class="att-btn e" data-action="set-att" data-att-state="e">E</button></div></div>
+    </article>
+    <article class="m-card">
+      <div class="m-card-row"><div><div class="m-card-title">Ana Lim</div><div class="past-att"><span class="badge badge-green">P</span><span class="badge badge-blue">E</span></div></div><span class="badge badge-amber">67%</span></div>
+      <div class="today-att"><div class="today-label">Today (Nov 5)</div><div class="att-status"><button type="button" class="att-btn p" data-action="set-att" data-att-state="p">P</button><button type="button" class="att-btn a" data-action="set-att" data-att-state="a">A</button><button type="button" class="att-btn l" data-action="set-att" data-att-state="l">L</button><button type="button" class="att-btn e active-e" data-action="set-att" data-att-state="e">E</button></div></div>
+    </article>
+  </div>
+</section>

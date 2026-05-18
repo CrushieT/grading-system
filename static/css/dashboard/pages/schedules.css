@@ -1,0 +1,7 @@
+#page-schedules .search-box {
+  flex: 1;
+}
+
+#page-schedules .filter-select {
+  min-width: 170px;
+}
