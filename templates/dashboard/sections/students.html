@@ -5,10 +5,12 @@
       <div class="page-sub">Manage student records.</div>
     </div>
     <div class="btn-group-wrap">
-      <button type="button" class="btn btn-secondary" data-action="open-modal" data-modal-target="modal-enroll">+ Enroll</button>
-      <button type="button" class="btn btn-primary" data-action="open-modal" data-modal-target="modal-student">+ Add</button>
+      <button type="button" class="btn btn-secondary" data-action="st-open-enroll-create">+ Enroll</button>
+      <button type="button" class="btn btn-primary" data-action="st-open-student-create">+ Add</button>
     </div>
   </div>
+
+  <div class="setup-feedback" id="students-feedback" hidden></div>
 
   <div class="filter-bar">
     <div class="search-box">
@@ -16,13 +18,19 @@
         <circle cx="7" cy="7" r="4"></circle>
         <line x1="10.5" y1="10.5" x2="14" y2="14"></line>
       </svg>
-      <input type="text" placeholder="Search by name or ID...">
+      <input type="text" id="student-search-input" placeholder="Search by name or ID...">
     </div>
-    <select class="filter-select">
-      <option>All Sections</option>
-      <option>Section A</option>
-      <option>Section B</option>
-      <option>Section C</option>
+    <select class="filter-select" id="student-section-filter">
+      <option value="">All Sections</option>
+    </select>
+    <select class="filter-select" id="student-year-level-filter">
+      <option value="">All Year Levels</option>
+      <option value="7">Year 7</option>
+      <option value="8">Year 8</option>
+      <option value="9">Year 9</option>
+      <option value="10">Year 10</option>
+      <option value="11">Year 11</option>
+      <option value="12">Year 12</option>
     </select>
   </div>
 
@@ -33,70 +41,43 @@
           <tr>
             <th>Student</th>
             <th>Student ID</th>
+            <th>Section</th>
+            <th>Year Level</th>
             <th>Enrolled</th>
             <th>Avg Grade</th>
             <th>Attendance</th>
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="students-table-body">
           <tr>
-            <td><div class="avatar-name"><span class="avatar-badge avatar-blue">JD</span>Juan dela Cruz</div></td>
-            <td class="mono subtle">2024-0001</td>
-            <td>3 schedules</td>
-            <td class="mono value-green">88.4</td>
-            <td><span class="badge badge-green">94%</span></td>
-            <td class="table-actions"><button type="button" class="btn btn-ghost btn-xs" data-action="open-student-view" data-name="Juan dela Cruz" data-initials="JD" data-color="#3b6cb7" data-avg="88.4" data-attendance="94%" data-schedules="3 schedules">View</button><button type="button" class="btn btn-ghost btn-xs">Edit</button></td>
-          </tr>
-          <tr>
-            <td><div class="avatar-name"><span class="avatar-badge avatar-green">MS</span>Maria Santos</div></td>
-            <td class="mono subtle">2024-0002</td>
-            <td>4 schedules</td>
-            <td class="mono value-green">92.1</td>
-            <td><span class="badge badge-green">98%</span></td>
-            <td class="table-actions"><button type="button" class="btn btn-ghost btn-xs" data-action="open-student-view" data-name="Maria Santos" data-initials="MS" data-color="#2d7a4f" data-avg="92.1" data-attendance="98%" data-schedules="4 schedules">View</button><button type="button" class="btn btn-ghost btn-xs">Edit</button></td>
-          </tr>
-          <tr>
-            <td><div class="avatar-name"><span class="avatar-badge avatar-amber">PR</span>Pedro Reyes</div></td>
-            <td class="mono subtle">2024-0003</td>
-            <td>3 schedules</td>
-            <td class="mono value-amber">74.6</td>
-            <td><span class="badge badge-amber">81%</span></td>
-            <td class="table-actions"><button type="button" class="btn btn-ghost btn-xs" data-action="open-student-view" data-name="Pedro Reyes" data-initials="PR" data-color="#b06b1a" data-avg="74.6" data-attendance="81%" data-schedules="3 schedules">View</button><button type="button" class="btn btn-ghost btn-xs">Edit</button></td>
-          </tr>
-          <tr>
-            <td><div class="avatar-name"><span class="avatar-badge avatar-red">AL</span>Ana Lim</div></td>
-            <td class="mono subtle">2024-0004</td>
-            <td>2 schedules</td>
-            <td class="mono value-red">68.0</td>
-            <td><span class="badge badge-red">74%</span></td>
-            <td class="table-actions"><button type="button" class="btn btn-ghost btn-xs" data-action="open-student-view" data-name="Ana Lim" data-initials="AL" data-color="#b83232" data-avg="68.0" data-attendance="74%" data-schedules="2 schedules">View</button><button type="button" class="btn btn-ghost btn-xs">Edit</button></td>
+            <td colspan="8" class="setup-sub">Loading students...</td>
           </tr>
         </tbody>
       </table>
     </div>
   </article>
 
-  <div class="mobile-card-list">
+  <div class="mobile-card-list" id="students-mobile-list">
     <article class="m-card">
-      <div class="m-card-row"><div class="avatar-name"><span class="avatar-badge avatar-blue">JD</span><div><div class="m-card-title">Juan dela Cruz</div><div class="m-card-sub">2024-0001</div></div></div><span class="badge badge-green">94%</span></div>
-      <div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Schedules</span><span class="m-meta-value">3</span></div><div class="m-meta-item"><span class="m-meta-label">Avg Grade</span><span class="m-meta-value value-green mono">88.4</span></div></div>
-      <div class="m-card-actions"><button type="button" class="btn btn-ghost" data-action="open-student-view" data-name="Juan dela Cruz" data-initials="JD" data-color="#3b6cb7" data-avg="88.4" data-attendance="94%" data-schedules="3 schedules">View</button><button type="button" class="btn btn-ghost">Edit</button></div>
+      <div class="setup-sub">Loading students...</div>
     </article>
-    <article class="m-card">
-      <div class="m-card-row"><div class="avatar-name"><span class="avatar-badge avatar-green">MS</span><div><div class="m-card-title">Maria Santos</div><div class="m-card-sub">2024-0002</div></div></div><span class="badge badge-green">98%</span></div>
-      <div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Schedules</span><span class="m-meta-value">4</span></div><div class="m-meta-item"><span class="m-meta-label">Avg Grade</span><span class="m-meta-value value-green mono">92.1</span></div></div>
-      <div class="m-card-actions"><button type="button" class="btn btn-ghost" data-action="open-student-view" data-name="Maria Santos" data-initials="MS" data-color="#2d7a4f" data-avg="92.1" data-attendance="98%" data-schedules="4 schedules">View</button><button type="button" class="btn btn-ghost">Edit</button></div>
-    </article>
-    <article class="m-card">
-      <div class="m-card-row"><div class="avatar-name"><span class="avatar-badge avatar-amber">PR</span><div><div class="m-card-title">Pedro Reyes</div><div class="m-card-sub">2024-0003</div></div></div><span class="badge badge-amber">81%</span></div>
-      <div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Schedules</span><span class="m-meta-value">3</span></div><div class="m-meta-item"><span class="m-meta-label">Avg Grade</span><span class="m-meta-value value-amber mono">74.6</span></div></div>
-      <div class="m-card-actions"><button type="button" class="btn btn-ghost" data-action="open-student-view" data-name="Pedro Reyes" data-initials="PR" data-color="#b06b1a" data-avg="74.6" data-attendance="81%" data-schedules="3 schedules">View</button><button type="button" class="btn btn-ghost">Edit</button></div>
-    </article>
-    <article class="m-card">
-      <div class="m-card-row"><div class="avatar-name"><span class="avatar-badge avatar-red">AL</span><div><div class="m-card-title">Ana Lim</div><div class="m-card-sub">2024-0004</div></div></div><span class="badge badge-red">74%</span></div>
-      <div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Schedules</span><span class="m-meta-value">2</span></div><div class="m-meta-item"><span class="m-meta-label">Avg Grade</span><span class="m-meta-value value-red mono">68.0</span></div></div>
-      <div class="m-card-actions"><button type="button" class="btn btn-ghost" data-action="open-student-view" data-name="Ana Lim" data-initials="AL" data-color="#b83232" data-avg="68.0" data-attendance="74%" data-schedules="2 schedules">View</button><button type="button" class="btn btn-ghost">Edit</button></div>
-    </article>
+  </div>
+
+  <div class="modal-overlay" id="modal-student-delete" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Delete Student</div>
+        <button type="button" class="close-btn" data-action="st-close-delete-modal">x</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-copy" id="student-delete-message">Are you sure you want to delete this student?</p>
+        <div class="setup-modal-error" id="student-delete-error" hidden></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-action="st-close-delete-modal">Cancel</button>
+        <button type="button" class="btn btn-danger" data-action="st-confirm-delete">Delete</button>
+      </div>
+    </div>
   </div>
 </section>

@@ -1,7 +1,13 @@
 from rest_framework import serializers
 
-from apps.models import SchoolYearSemester, Section, Subject
+from apps.models import Record, Schedule, SchoolYearSemester, Section, Student, Subject
 from apps.services.students_service import (
+    get_student_queryset_for_user,
+    validate_duplicate_active_enrollment,
+    validate_student_enrollment_owner,
+    validate_student_enrollment_section_match,
+    validate_student_id_unique,
+    validate_student_section_owner,
     validate_section_name_unique,
     validate_subject_code_unique,
 )
@@ -116,4 +122,174 @@ class SectionSerializer(serializers.ModelSerializer):
         )
 
         attrs["name"] = name
+        return attrs
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    section_name = serializers.CharField(source="section.name", read_only=True)
+    enrolled_schedules_count = serializers.SerializerMethodField()
+    average_grade = serializers.SerializerMethodField()
+    attendance_rate = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Student
+        fields = [
+            "id",
+            "student_id",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "full_name",
+            "gender",
+            "contact_number",
+            "year_level",
+            "section",
+            "section_name",
+            "enrolled_schedules_count",
+            "average_grade",
+            "attendance_rate",
+        ]
+        read_only_fields = [
+            "id",
+            "full_name",
+            "section_name",
+            "enrolled_schedules_count",
+            "average_grade",
+            "attendance_rate",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if not request:
+            return
+        self.fields["section"].queryset = Section.objects.filter(
+            school_year_sem__school_year__user=request.user,
+            school_year_sem__semester__user=request.user,
+        )
+
+    def get_full_name(self, obj):
+        middle = f" {obj.middle_name.strip()}" if obj.middle_name else ""
+        return f"{obj.first_name}{middle} {obj.last_name}".strip()
+
+    def get_enrolled_schedules_count(self, obj):
+        return Record.objects.filter(student=obj, is_active=True).count()
+
+    def get_average_grade(self, _obj):
+        return "--"
+
+    def get_attendance_rate(self, _obj):
+        return "--"
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+        if not request:
+            raise serializers.ValidationError("User context is required.")
+
+        instance = self.instance
+        student_id = str(attrs.get("student_id", instance.student_id if instance else "") or "").strip()
+        first_name = str(attrs.get("first_name", instance.first_name if instance else "") or "").strip()
+        middle_name = str(attrs.get("middle_name", instance.middle_name if instance else "") or "").strip()
+        last_name = str(attrs.get("last_name", instance.last_name if instance else "") or "").strip()
+        year_level = attrs.get("year_level", instance.year_level if instance else None)
+        section = attrs.get("section", instance.section if instance else None)
+        gender = attrs.get("gender", instance.gender if instance else None)
+        contact_number = attrs.get("contact_number", instance.contact_number if instance else None)
+
+        if not student_id:
+            raise serializers.ValidationError({"student_id": "Student ID is required."})
+        if not first_name:
+            raise serializers.ValidationError({"first_name": "First name is required."})
+        if not last_name:
+            raise serializers.ValidationError({"last_name": "Last name is required."})
+        if year_level is None:
+            raise serializers.ValidationError({"year_level": "Year level is required."})
+        if year_level <= 0:
+            raise serializers.ValidationError({"year_level": "Year level must be greater than 0."})
+        if section is None:
+            raise serializers.ValidationError({"section": "Please select a section."})
+
+        validate_student_id_unique(student_id, exclude_id=instance.id if instance else None)
+        validate_student_section_owner(request.user, section)
+
+        attrs["student_id"] = student_id
+        attrs["first_name"] = first_name
+        attrs["middle_name"] = middle_name or None
+        attrs["last_name"] = last_name
+        attrs["gender"] = str(gender or "").strip() or None
+        attrs["contact_number"] = str(contact_number or "").strip() or None
+        return attrs
+
+
+class StudentEnrollmentSerializer(serializers.ModelSerializer):
+    student_name = serializers.SerializerMethodField()
+    schedule_label = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Record
+        fields = [
+            "id",
+            "student",
+            "student_name",
+            "schedule",
+            "schedule_label",
+            "date_enrolled",
+            "is_active",
+        ]
+        read_only_fields = ["id", "student_name", "schedule_label", "date_enrolled"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if not request:
+            return
+        user = request.user
+        self.fields["student"].queryset = get_student_queryset_for_user(user).order_by(
+            "last_name", "first_name", "id"
+        )
+        self.fields["schedule"].queryset = Schedule.objects.select_related(
+            "subject",
+            "section",
+            "school_year_semester__school_year",
+            "school_year_semester__semester",
+        ).filter(
+            user=user,
+            school_year_semester__school_year__user=user,
+            school_year_semester__semester__user=user,
+        ).order_by("day", "id")
+
+    def get_student_name(self, obj):
+        middle = f" {obj.student.middle_name.strip()}" if obj.student.middle_name else ""
+        return f"{obj.student.first_name}{middle} {obj.student.last_name}".strip()
+
+    def get_schedule_label(self, obj):
+        subject = obj.schedule.subject.name
+        section = obj.schedule.section.name
+        day = obj.schedule.day or "-"
+        return f"{subject} - {section} ({day})"
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+        if not request:
+            raise serializers.ValidationError("User context is required.")
+
+        instance = self.instance
+        student = attrs.get("student", instance.student if instance else None)
+        schedule = attrs.get("schedule", instance.schedule if instance else None)
+        is_active = attrs.get("is_active", instance.is_active if instance else True)
+
+        if student is None:
+            raise serializers.ValidationError({"student": "Please select a student."})
+        if schedule is None:
+            raise serializers.ValidationError({"schedule": "Please select a schedule."})
+
+        validate_student_enrollment_owner(request.user, student, schedule)
+        validate_student_enrollment_section_match(student, schedule)
+        if is_active:
+            validate_duplicate_active_enrollment(
+                student,
+                schedule,
+                exclude_id=instance.id if instance else None,
+            )
         return attrs

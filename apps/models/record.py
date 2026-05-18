@@ -5,6 +5,8 @@ from .student import Student
 class Record(models.Model):
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    date_enrolled = models.DateField(auto_now_add=True, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
     average = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     class Meta:
