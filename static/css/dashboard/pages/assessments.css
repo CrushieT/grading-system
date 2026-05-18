@@ -1,0 +1,32 @@
+.scores-info-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+.modal-body-flush {
+  padding: 0;
+}
+
+.score-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.score-input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  width: 72px;
+  font-family: "DM Mono", monospace;
+}
+
+.score-max-col {
+  font-size: 12px;
+  color: var(--text-3);
+}

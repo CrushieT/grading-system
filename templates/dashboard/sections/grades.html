@@ -1,0 +1,60 @@
+<section class="page" id="page-grades">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Grades</div>
+      <div class="page-sub">Computed grades per period.</div>
+    </div>
+    <button type="button" class="btn btn-secondary">Export CSV</button>
+  </div>
+
+  <div class="filter-bar">
+    <select class="filter-select">
+      <option>Mathematics 10 - Section A</option>
+      <option>Science 9 - Section B</option>
+    </select>
+  </div>
+
+  <div class="tabs">
+    <button type="button" class="tab active" data-action="switch-tab" data-tab-target="tab-prelim">Prelim</button>
+    <button type="button" class="tab" data-action="switch-tab" data-tab-target="tab-midterm">Midterm</button>
+    <button type="button" class="tab" data-action="switch-tab" data-tab-target="tab-prefinal">Prefinal</button>
+    <button type="button" class="tab" data-action="switch-tab" data-tab-target="tab-final">Final</button>
+    <button type="button" class="tab" data-action="switch-tab" data-tab-target="tab-average">Average</button>
+  </div>
+
+  <div id="tab-prelim" class="tab-panel active">
+    <article class="card desktop-table">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Quizzes 30%</th>
+              <th>Activities 40%</th>
+              <th>Exam 30%</th>
+              <th>Grade</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Juan dela Cruz</td><td class="mono">88</td><td class="mono">90</td><td class="mono">85</td><td><div class="grade-value-wrap"><span class="mono value-green">88.00</span><div class="grade-bar"><div class="grade-fill" style="width:88%;"></div></div></div></td><td><span class="badge badge-green">Passed</span></td></tr>
+            <tr><td>Maria Santos</td><td class="mono">95</td><td class="mono">93</td><td class="mono">91</td><td><div class="grade-value-wrap"><span class="mono value-green">93.00</span><div class="grade-bar"><div class="grade-fill" style="width:93%;"></div></div></div></td><td><span class="badge badge-green">Passed</span></td></tr>
+            <tr><td>Pedro Reyes</td><td class="mono">72</td><td class="mono">75</td><td class="mono">70</td><td><div class="grade-value-wrap"><span class="mono value-amber">72.50</span><div class="grade-bar"><div class="grade-fill mid" style="width:72%;"></div></div></div></td><td><span class="badge badge-green">Passed</span></td></tr>
+            <tr><td>Ana Lim</td><td class="mono">62</td><td class="mono">65</td><td class="mono">60</td><td><div class="grade-value-wrap"><span class="mono value-red">62.30</span><div class="grade-bar"><div class="grade-fill low" style="width:62%;"></div></div></div></td><td><span class="badge badge-red">Failed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <div class="mobile-card-list">
+      <article class="m-card"><div class="m-card-row"><div class="m-card-title">Juan dela Cruz</div><span class="badge badge-green">Passed</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Quizzes</span><span class="m-meta-value mono">88</span></div><div class="m-meta-item"><span class="m-meta-label">Activities</span><span class="m-meta-value mono">90</span></div><div class="m-meta-item"><span class="m-meta-label">Exam</span><span class="m-meta-value mono">85</span></div><div class="m-meta-item"><span class="m-meta-label">Grade</span><span class="m-meta-value value-green mono grade-big">88.00</span></div></div></article>
+      <article class="m-card"><div class="m-card-row"><div class="m-card-title">Maria Santos</div><span class="badge badge-green">Passed</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Quizzes</span><span class="m-meta-value mono">95</span></div><div class="m-meta-item"><span class="m-meta-label">Activities</span><span class="m-meta-value mono">93</span></div><div class="m-meta-item"><span class="m-meta-label">Exam</span><span class="m-meta-value mono">91</span></div><div class="m-meta-item"><span class="m-meta-label">Grade</span><span class="m-meta-value value-green mono grade-big">93.00</span></div></div></article>
+      <article class="m-card"><div class="m-card-row"><div class="m-card-title">Pedro Reyes</div><span class="badge badge-green">Passed</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Quizzes</span><span class="m-meta-value mono">72</span></div><div class="m-meta-item"><span class="m-meta-label">Activities</span><span class="m-meta-value mono">75</span></div><div class="m-meta-item"><span class="m-meta-label">Exam</span><span class="m-meta-value mono">70</span></div><div class="m-meta-item"><span class="m-meta-label">Grade</span><span class="m-meta-value value-amber mono grade-big">72.50</span></div></div></article>
+      <article class="m-card"><div class="m-card-row"><div class="m-card-title">Ana Lim</div><span class="badge badge-red">Failed</span></div><div class="m-card-meta"><div class="m-meta-item"><span class="m-meta-label">Quizzes</span><span class="m-meta-value mono">62</span></div><div class="m-meta-item"><span class="m-meta-label">Activities</span><span class="m-meta-value mono">65</span></div><div class="m-meta-item"><span class="m-meta-label">Exam</span><span class="m-meta-value mono">60</span></div><div class="m-meta-item"><span class="m-meta-label">Grade</span><span class="m-meta-value value-red mono grade-big">62.30</span></div></div></article>
+    </div>
+  </div>
+  <div id="tab-midterm" class="tab-panel"><article class="card"><div class="card-body"><div class="empty-text">Midterm grades not yet available.</div></div></article></div>
+  <div id="tab-prefinal" class="tab-panel"><article class="card"><div class="card-body"><div class="empty-text">Prefinal grades not yet available.</div></div></article></div>
+  <div id="tab-final" class="tab-panel"><article class="card"><div class="card-body"><div class="empty-text">Final grades not yet available.</div></div></article></div>
+  <div id="tab-average" class="tab-panel"><article class="card"><div class="card-body"><div class="empty-text">Final averages will appear when all periods are complete.</div></div></article></div>
+</section>
