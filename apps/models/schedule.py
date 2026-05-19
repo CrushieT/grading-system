@@ -3,6 +3,7 @@ from .user import User
 from .subject_section import Subject, Section
 from .school_structure import SchoolYearSemester
 from .period import Period
+from .grading_template import GradingTemplate
 from .choices import WeekDay
 
 class Schedule(models.Model):
@@ -12,6 +13,12 @@ class Schedule(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     period = models.ForeignKey(Period, on_delete=models.CASCADE, null=True, blank=True)
     day = models.CharField(max_length=15, choices=WeekDay.choices, null=True, blank=True)
+    grading_template = models.ForeignKey(
+        GradingTemplate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return f"{self.subject} - {self.section}"

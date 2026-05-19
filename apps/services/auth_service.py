@@ -110,6 +110,8 @@ def register_teacher_account(validated_data):
         user=user,
         subject=default_subject,
         name=profile["name"],
+        is_default=True,
+        is_active=True,
     )
     GradingTemplateItem.objects.bulk_create(
         [

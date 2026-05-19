@@ -1,7 +1,7 @@
 from django.db.models import Q
 from rest_framework import serializers
 
-from apps.models import Period, Schedule, Section, Subject
+from apps.models import GradingTemplate, Period, Schedule, Section, Subject
 
 
 def get_schedule_period_queryset(user):
@@ -97,6 +97,31 @@ def validate_schedule_period_owner(user, period):
         raise serializers.ValidationError({"period": "Invalid period selected."})
     if period.time_start is None or period.time_end is None:
         raise serializers.ValidationError({"period": "Please select a schedule period."})
+
+
+def get_grading_template_queryset_for_user(user):
+    return GradingTemplate.objects.filter(user=user, is_active=True)
+
+
+def get_default_grading_template_for_user(user):
+    return (
+        GradingTemplate.objects.filter(user=user, is_default=True, is_active=True)
+        .order_by("id")
+        .first()
+    )
+
+
+def validate_schedule_grading_template_owner(user, grading_template):
+    if grading_template is None:
+        return
+    if grading_template.user_id != user.id:
+        raise serializers.ValidationError(
+            {"grading_template": "Invalid grading template selected."}
+        )
+    if not grading_template.is_active:
+        raise serializers.ValidationError(
+            {"grading_template": "Please select an active grading template."}
+        )
 
 
 def validate_schedule_section_term_match(section, school_year_semester):
