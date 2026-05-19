@@ -11,6 +11,7 @@
     subjects: [],
     sections: [],
     schoolYearSemesters: [],
+    gradingTemplates: [],
     editingPeriodId: null,
     editingScheduleId: null,
     deleteContext: null,
@@ -311,6 +312,7 @@
     const subjectSelect = getEl("schedule-subject-input");
     const sectionSelect = getEl("schedule-section-input");
     const periodSelect = getEl("schedule-period-input");
+    const gradingTemplateSelect = getEl("schedule-grading-template-input");
 
     if (subjectSelect) {
       subjectSelect.innerHTML = `
@@ -331,6 +333,21 @@
         <option value="">Select period</option>
         ${state.periods.map(item => `<option value="${item.id}">${periodLabel(item)}</option>`).join("")}
       `;
+    }
+
+    if (gradingTemplateSelect) {
+      if (!state.gradingTemplates.length) {
+        gradingTemplateSelect.innerHTML = `
+          <option value="">No active grading templates available</option>
+        `;
+        gradingTemplateSelect.disabled = true;
+      } else {
+        gradingTemplateSelect.innerHTML = `
+          <option value="">Select grading template</option>
+          ${state.gradingTemplates.map(item => `<option value="${item.id}">${item.name}</option>`).join("")}
+        `;
+        gradingTemplateSelect.disabled = false;
+      }
     }
   }
 
@@ -354,14 +371,16 @@
   }
 
   async function loadReferenceLists() {
-    const [subjects, sections, schoolYearSemesters] = await Promise.all([
+    const [subjects, sections, schoolYearSemesters, gradingTemplates] = await Promise.all([
       fetchList("/api/subjects/", "Failed to load subjects."),
       fetchList("/api/sections/", "Failed to load sections."),
       fetchList("/api/school-year-semesters/", "Failed to load school year semesters."),
+      fetchList("/api/grading-templates/?is_active=true", "Failed to load grading templates."),
     ]);
     state.subjects = subjects;
     state.sections = sections;
     state.schoolYearSemesters = schoolYearSemesters;
+    state.gradingTemplates = gradingTemplates;
     renderScheduleFilterOptions();
     renderScheduleModalOptions();
   }
@@ -436,6 +455,9 @@
     getEl("schedule-school-year-sem-input").value = "";
     getEl("schedule-day-input").value = "";
     getEl("schedule-period-input").value = "";
+    if (getEl("schedule-grading-template-input")) {
+      getEl("schedule-grading-template-input").value = "";
+    }
     showModalError("schedule-modal-error", "");
   }
 
@@ -474,6 +496,16 @@
     resetScheduleModal();
     await loadReferenceLists();
     await loadPeriodsList();
+    const defaultTemplate = state.gradingTemplates.find(item => item.is_default && item.is_active);
+    if (defaultTemplate && getEl("schedule-grading-template-input")) {
+      getEl("schedule-grading-template-input").value = String(defaultTemplate.id);
+    }
+    if (!state.gradingTemplates.length) {
+      showModalError(
+        "schedule-modal-error",
+        "No active grading templates available. Create one in Settings first."
+      );
+    }
     openModal("modal-schedule-manage");
   }
 
@@ -492,6 +524,15 @@
     getEl("schedule-school-year-sem-input").value = schedule.school_year_sem || "";
     getEl("schedule-day-input").value = schedule.day || "";
     getEl("schedule-period-input").value = schedule.period || "";
+    if (getEl("schedule-grading-template-input")) {
+      getEl("schedule-grading-template-input").value = schedule.grading_template || "";
+    }
+    if (!state.gradingTemplates.length) {
+      showModalError(
+        "schedule-modal-error",
+        "No active grading templates available. Create one in Settings first."
+      );
+    }
     openModal("modal-schedule-manage");
   }
 
@@ -549,6 +590,9 @@
     const schoolYearSem = Number(getEl("schedule-school-year-sem-input").value);
     const day = String(getEl("schedule-day-input").value || "").trim();
     const period = Number(getEl("schedule-period-input").value);
+    const gradingTemplateValue = String(
+      (getEl("schedule-grading-template-input") || {}).value || ""
+    ).trim();
 
     if (!subject) {
       showModalError("schedule-modal-error", "Please select a subject.");
@@ -570,6 +614,10 @@
       showModalError("schedule-modal-error", "Please select a period.");
       return;
     }
+    if (!gradingTemplateValue) {
+      showModalError("schedule-modal-error", "Please select an active grading template.");
+      return;
+    }
 
     const payload = {
       subject,
@@ -577,6 +625,7 @@
       school_year_sem: schoolYearSem,
       day,
       period,
+      grading_template: Number(gradingTemplateValue),
     };
 
     const isEditing = !!state.editingScheduleId;

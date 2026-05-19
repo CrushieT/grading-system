@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/dashboard/pages/attendance.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard/pages/grades.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard/pages/setup.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard/pages/grading-setup.css' %}">
   </head>
   <body class="dashboard-body is-loading-auth">
     <div class="auth-overlay" id="auth-overlay" aria-live="polite">
@@ -348,12 +349,13 @@
 
             <div>
               <div class="settings-title">Grading Templates</div>
+              <div class="setup-feedback" id="grading-setup-feedback" hidden></div>
               <article class="card">
-                <div class="card-header"><span class="card-title">Saved Templates</span><button type="button" class="btn btn-primary btn-xs" data-action="open-modal" data-modal-target="modal-template">+ New</button></div>
-                <div>
-                  <div class="setup-item"><div><div class="setup-label">Standard (Q30/A40/E30)</div><div class="setup-sub">Quiz 30% · Activity 40% · Exam 30%</div></div><div class="setup-actions"><button type="button" class="icon-btn">Edit</button><button type="button" class="icon-btn danger">Delete</button></div></div>
-                  <div class="setup-item"><div><div class="setup-label">Exam-Heavy (Q20/A30/E50)</div><div class="setup-sub">Quiz 20% · Activity 30% · Exam 50%</div></div><div class="setup-actions"><button type="button" class="icon-btn">Edit</button><button type="button" class="icon-btn danger">Delete</button></div></div>
-                  <div class="setup-item"><div><div class="setup-label">Activity-Based (Q20/A60/E20)</div><div class="setup-sub">Quiz 20% · Activity 60% · Exam 20%</div></div><div class="setup-actions"><button type="button" class="icon-btn">Edit</button><button type="button" class="icon-btn danger">Delete</button></div></div>
+                <div class="card-header"><span class="card-title">Saved Templates</span><button type="button" class="btn btn-primary btn-xs" data-action="gs-open-template-create">+ New</button></div>
+                <div id="grading-templates-list">
+                  <div class="setup-item">
+                    <div><div class="setup-sub">Loading grading templates...</div></div>
+                  </div>
                 </div>
               </article>
             </div>
@@ -515,20 +517,53 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="modal-template" hidden>
-      <div class="modal">
-        <div class="modal-header"><div class="modal-title">New Grading Template</div><button type="button" class="close-btn" data-action="close-modal" data-modal-target="modal-template">x</button></div>
-        <div class="modal-body">
-          <div class="form-grid single-col">
-            <div class="form-group"><label>Template Name</label><input type="text" placeholder="e.g. Standard (Q30/A40/E30)"></div>
-          </div>
-          <div class="section-label">Grade Part Weights</div>
-          <div class="weight-row"><label>Quiz / Written Work</label><div class="weight-input"><input type="number" min="0" max="100" value="30" data-action="update-weight-total"><span>%</span></div></div>
-          <div class="weight-row"><label>Activity / Performance Task</label><div class="weight-input"><input type="number" min="0" max="100" value="40" data-action="update-weight-total"><span>%</span></div></div>
-          <div class="weight-row"><label>Exam / Quarterly Assessment</label><div class="weight-input"><input type="number" min="0" max="100" value="30" data-action="update-weight-total"><span>%</span></div></div>
-          <div class="weight-total"><span>Total:</span><span id="weight-total-val" class="mono">100%</span></div>
+    <div class="modal-overlay" id="modal-grading-template-manage" hidden>
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <div class="modal-title" id="grading-template-modal-title">Add Grading Template</div>
+          <button type="button" class="close-btn" data-action="gs-close-template-modal">x</button>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-action="close-modal" data-modal-target="modal-template">Cancel</button><button type="button" class="btn btn-primary">Save Template</button></div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Template Name</label>
+              <input type="text" id="grading-template-name-input" placeholder="e.g. Standard Template">
+            </div>
+            <div class="form-group full">
+              <label>Description (optional)</label>
+              <input type="text" id="grading-template-description-input" placeholder="Optional notes">
+            </div>
+          </div>
+          <div class="section-label">Components &amp; Weights</div>
+          <div id="grading-template-components-list" class="gs-components-list"></div>
+          <div class="total-row gs-template-total-row">
+            <span>Total:</span>
+            <span id="grading-template-total" class="mono value-green">0%</span>
+          </div>
+          <button type="button" class="btn btn-secondary btn-xs" data-action="gs-add-component-row">+ Add Component</button>
+          <div class="setup-modal-error" id="grading-template-modal-error" hidden></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-action="gs-close-template-modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="grading-template-save-btn" data-action="gs-save-template">Save Template</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-grading-template-delete" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Delete Template</div>
+          <button type="button" class="close-btn" data-action="gs-close-delete-modal">x</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-copy" id="grading-template-delete-message">Are you sure you want to delete this template?</p>
+          <div class="setup-modal-error" id="grading-template-delete-error" hidden></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-action="gs-close-delete-modal">Cancel</button>
+          <button type="button" class="btn btn-danger" data-action="gs-confirm-delete-template">Delete</button>
+        </div>
       </div>
     </div>
 
@@ -681,6 +716,7 @@
     <script src="{% static 'js/dashboard/pages/setup.js' %}" defer></script>
     <script src="{% static 'js/dashboard/pages/subjects-sections.js' %}" defer></script>
     <script src="{% static 'js/dashboard/pages/periods-schedules.js' %}" defer></script>
+    <script src="{% static 'js/dashboard/pages/grading-setup.js' %}" defer></script>
     <script src="{% static 'js/dashboard.js' %}" defer></script>
   </body>
 </html>

@@ -82,6 +82,7 @@ class ScheduleListCreateAPIView(APIView):
             "subject",
             "section",
             "period",
+            "grading_template",
             "school_year_semester__school_year",
             "school_year_semester__semester",
         ).filter(
@@ -114,6 +115,7 @@ class ScheduleDetailAPIView(APIView):
                 "subject",
                 "section",
                 "period",
+                "grading_template",
                 "school_year_semester__school_year",
                 "school_year_semester__semester",
             )

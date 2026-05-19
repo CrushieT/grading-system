@@ -1,12 +1,14 @@
 from rest_framework import serializers
 
-from apps.models import Period, Schedule, SchoolYearSemester, WeekDay
+from apps.models import GradingTemplate, Period, Schedule, SchoolYearSemester, WeekDay
 from apps.models.user import User
 from apps.services.schedules_service import (
     get_schedule_period_queryset,
+    get_grading_template_queryset_for_user,
     get_section_queryset_for_user,
     get_subject_queryset_for_user,
     validate_schedule_conflicts,
+    validate_schedule_grading_template_owner,
     validate_schedule_period_owner,
     validate_schedule_school_year_sem_owner,
     validate_schedule_section_owner,
@@ -74,6 +76,12 @@ class ScheduleSerializer(serializers.ModelSerializer):
     period_time = serializers.SerializerMethodField()
     school_year_sem_display = serializers.SerializerMethodField()
     period_display = serializers.SerializerMethodField()
+    grading_template = serializers.PrimaryKeyRelatedField(
+        required=False,
+        allow_null=True,
+        queryset=GradingTemplate.objects.none(),
+    )
+    grading_template_name = serializers.CharField(source="grading_template.name", read_only=True)
 
     class Meta:
         model = Schedule
@@ -97,6 +105,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
             "period_name",
             "period_time",
             "period_display",
+            "grading_template",
+            "grading_template_name",
         ]
         read_only_fields = [
             "id",
@@ -112,6 +122,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
             "period_name",
             "period_time",
             "period_display",
+            "grading_template_name",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -124,6 +135,10 @@ class ScheduleSerializer(serializers.ModelSerializer):
         self.fields["subject"].queryset = get_subject_queryset_for_user(user).order_by("code", "id")
         self.fields["section"].queryset = get_section_queryset_for_user(user).order_by("name", "id")
         self.fields["period"].queryset = get_schedule_period_queryset(user).order_by("time_start", "name")
+        self.fields["grading_template"].queryset = get_grading_template_queryset_for_user(user).order_by(
+            "name",
+            "id",
+        )
         self.fields["school_year_sem"].queryset = SchoolYearSemester.objects.select_related(
             "school_year",
             "semester",
@@ -174,6 +189,10 @@ class ScheduleSerializer(serializers.ModelSerializer):
         )
         day = attrs.get("day") or (instance.day if instance else None)
         period = attrs.get("period") or (instance.period if instance else None)
+        grading_template = attrs.get(
+            "grading_template",
+            instance.grading_template if instance else None,
+        )
 
         if subject is None:
             raise serializers.ValidationError({"subject": "Please select a subject."})
@@ -187,12 +206,19 @@ class ScheduleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"day": "Please select a day."})
         if period is None:
             raise serializers.ValidationError({"period": "Please select a period."})
+        if grading_template is None:
+            raise serializers.ValidationError(
+                {"grading_template": "Please select an active grading template."}
+            )
 
         validate_schedule_subject_owner(request.user, subject)
         validate_schedule_section_owner(request.user, section)
         validate_schedule_school_year_sem_owner(request.user, school_year_semester)
         validate_schedule_period_owner(request.user, period)
         validate_schedule_section_term_match(section, school_year_semester)
+
+        if grading_template is not None:
+            validate_schedule_grading_template_owner(request.user, grading_template)
 
         validate_schedule_conflicts(
             teacher=teacher,
