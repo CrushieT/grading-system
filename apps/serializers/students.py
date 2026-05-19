@@ -7,6 +7,7 @@ from apps.services.students_service import (
     validate_duplicate_active_enrollment,
     validate_student_enrollment_owner,
     validate_student_enrollment_section_match,
+    validate_student_enrollment_time_conflict,
     validate_student_id_unique,
     validate_student_section_owner,
     validate_student_year_level_matches_section,
@@ -357,6 +358,11 @@ class StudentEnrollmentSerializer(serializers.ModelSerializer):
         validate_student_enrollment_owner(request.user, student, schedule)
         validate_student_enrollment_section_match(student, schedule)
         if is_active:
+            validate_student_enrollment_time_conflict(
+                student,
+                schedule,
+                exclude_id=instance.id if instance else None,
+            )
             validate_duplicate_active_enrollment(
                 student,
                 schedule,

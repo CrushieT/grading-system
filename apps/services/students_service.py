@@ -195,6 +195,50 @@ def validate_student_enrollment_section_match(student, schedule):
     )
 
 
+def _schedules_time_conflict(schedule_a, schedule_b):
+    if not schedule_a.day or not schedule_b.day:
+        return False
+    if str(schedule_a.day) != str(schedule_b.day):
+        return False
+
+    if schedule_a.period_id and schedule_b.period_id and schedule_a.period_id == schedule_b.period_id:
+        return True
+
+    period_a = schedule_a.period if schedule_a.period_id else None
+    period_b = schedule_b.period if schedule_b.period_id else None
+    if not period_a or not period_b:
+        return False
+    if not period_a.time_start or not period_a.time_end:
+        return False
+    if not period_b.time_start or not period_b.time_end:
+        return False
+
+    return period_a.time_start < period_b.time_end and period_b.time_start < period_a.time_end
+
+
+def validate_student_enrollment_time_conflict(student, schedule, exclude_id=None):
+    queryset = (
+        Record.objects.select_related("schedule__period", "schedule__subject", "schedule__section")
+        .filter(student=student, is_active=True, schedule__day=schedule.day)
+        .exclude(schedule_id=schedule.id)
+    )
+    if exclude_id is not None:
+        queryset = queryset.exclude(id=exclude_id)
+
+    for enrollment in queryset:
+        if _schedules_time_conflict(schedule, enrollment.schedule):
+            existing = enrollment.schedule
+            existing_label = f"{existing.subject.name} - {existing.section.name}"
+            raise serializers.ValidationError(
+                {
+                    "schedule": (
+                        f"This student already has another schedule conflict on "
+                        f"{existing.day} ({existing_label})."
+                    )
+                }
+            )
+
+
 def validate_duplicate_active_enrollment(student, schedule, exclude_id=None):
     queryset = Record.objects.filter(student=student, schedule=schedule, is_active=True)
     if exclude_id is not None:
