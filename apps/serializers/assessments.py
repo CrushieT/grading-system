@@ -158,7 +158,7 @@ class AssessmentSerializer(serializers.ModelSerializer):
         if date_given is None:
             raise serializers.ValidationError({"date_given": "Date given is required."})
 
-        schedule = resolve_schedule_for_user(request.user, schedule_value)
+        schedule = resolve_schedule_for_user(request.user, schedule_value, require_active=True)
         grade_period = resolve_grade_period_for_user(request.user, grade_period_value)
         template = resolve_schedule_template_or_default(request.user, schedule)
         component = resolve_component_for_template(component_value, template)

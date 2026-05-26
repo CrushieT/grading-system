@@ -14,6 +14,7 @@ from apps.services.assessments_service import (
     delete_or_deactivate_assessment,
     get_assessment_records_with_scores,
     get_assessment_queryset_for_user,
+    ensure_assessment_schedule_active,
     get_components_for_schedule,
     resolve_schedule_for_user,
 )
@@ -78,6 +79,7 @@ class AssessmentDetailAPIView(APIView):
         assessment = self.get_object(request, pk)
         if assessment is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        ensure_assessment_schedule_active(assessment)
 
         action = delete_or_deactivate_assessment(assessment)
         if action == "deactivated":
@@ -152,6 +154,7 @@ class AssessmentScoresAPIView(APIView):
         assessment = self.get_assessment(request, assessment_id)
         if assessment is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        ensure_assessment_schedule_active(assessment)
 
         payload = request.data
         items = None

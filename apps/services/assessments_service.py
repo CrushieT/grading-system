@@ -14,6 +14,7 @@ from apps.models import (
     Schedule,
 )
 from apps.services.grading_service import get_active_default_template
+from apps.services.setup_service import ensure_schedule_term_is_active
 from apps.services.setup_service import get_grade_period_queryset
 
 
@@ -97,12 +98,18 @@ def apply_assessment_filters(queryset, params):
     return queryset
 
 
-def resolve_schedule_for_user(user, schedule):
+def resolve_schedule_for_user(user, schedule, require_active=False):
     schedule_id = schedule.id if isinstance(schedule, Schedule) else int(schedule)
     schedule_obj = get_schedule_queryset_for_user(user).filter(id=schedule_id).first()
     if schedule_obj is None:
         raise serializers.ValidationError({"schedule": "Please select a valid schedule."})
+    if require_active:
+        ensure_schedule_term_is_active(schedule_obj)
     return schedule_obj
+
+
+def ensure_assessment_schedule_active(assessment):
+    ensure_schedule_term_is_active(assessment.schedule)
 
 
 def resolve_grade_period_for_user(user, grade_period):
@@ -191,7 +198,7 @@ def delete_or_deactivate_assessment(assessment):
 def get_assessment_records_with_scores(assessment):
     records = list(
         Record.objects.select_related("student")
-        .filter(schedule=assessment.schedule, is_active=True)
+        .filter(schedule=assessment.schedule, is_active=True, grade_period__isnull=True)
         .order_by("student__last_name", "student__first_name", "id")
     )
     score_map = {
@@ -245,7 +252,11 @@ def bulk_save_assessment_scores(assessment, items):
             {"items": "Expected a list of score records."}
         )
 
-    records = Record.objects.filter(schedule=assessment.schedule, is_active=True)
+    records = Record.objects.filter(
+        schedule=assessment.schedule,
+        is_active=True,
+        grade_period__isnull=True,
+    )
     record_map = {item.id: item for item in records}
     existing_map = {
         item.record_id: item

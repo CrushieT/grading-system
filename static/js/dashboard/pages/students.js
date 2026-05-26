@@ -1,5 +1,6 @@
 (() => {
   const REFRESH_STORAGE_KEY = "gd_refresh";
+  const events = window.EduTrackEvents || null;
 
   let accessToken = null;
   let refreshPromise = null;
@@ -28,6 +29,18 @@
 
   function getEl(id) {
     return document.getElementById(id);
+  }
+
+  function emitStudentsChanged() {
+    if (!events) return;
+    events.invalidate("students");
+    events.emit("students:changed");
+  }
+
+  function emitEnrollmentsChanged() {
+    if (!events) return;
+    events.invalidate("enrollments");
+    events.emit("enrollments:changed");
   }
 
   function getRefreshToken() {
@@ -388,20 +401,18 @@
     if (!tableBody) return;
 
     if (!state.students.length) {
-      tableBody.innerHTML = `<tr><td colspan="8" class="setup-sub">No students yet.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="7" class="setup-sub">No students yet.</td></tr>`;
       return;
     }
 
     tableBody.innerHTML = state.students
       .map(item => {
-        const schedulesCount = getStudentEnrollmentCount(item.id);
         return `
           <tr>
             <td><div class="avatar-name"><span class="avatar-badge ${colorClassForStudent(item)}">${initialsForStudent(item)}</span>${fullName(item)}</div></td>
             <td class="mono subtle">${item.student_id}</td>
             <td>${item.section_name || "-"}</td>
             <td>Year ${item.year_level}</td>
-            <td>${schedulesCount} schedule${schedulesCount === 1 ? "" : "s"}</td>
             <td class="mono subtle">${item.average_grade || "--"}</td>
             <td><span class="badge badge-gray">${item.attendance_rate || "--"}</span></td>
             <td class="table-actions">
@@ -813,6 +824,7 @@
       await sendJson(url, method, payload, "Failed to save student.");
       closeStudentModal();
       await Promise.all([loadReferenceLists(), reloadStudentsData()]);
+      emitStudentsChanged();
       showFeedback("Student saved.");
     } catch (err) {
       showModalError("student-modal-error", err.message || "Failed to save student.");
@@ -863,6 +875,7 @@
       );
       closeEnrollModal();
       await reloadStudentsData();
+      emitEnrollmentsChanged();
       showFeedback("Student enrolled.");
     } catch (err) {
       showModalError("enroll-modal-error", err.message || "Failed to enroll student.");
@@ -875,6 +888,8 @@
     if (response.status === 204) {
       closeDeleteModal();
       await reloadStudentsData();
+      emitStudentsChanged();
+      emitEnrollmentsChanged();
       showFeedback(state.deleteContext.successMessage);
       return;
     }
@@ -979,9 +994,35 @@
     setupFilters();
     setupStudentModalSync();
     setupEnrollModalSync();
+    const refreshAllDebounced = events?.debounce?.(
+      () => Promise.all([loadReferenceLists(), reloadStudentsData()]).catch(err => showFeedback(err.message || "Failed to refresh students.", true)),
+      220
+    );
+    if (events && refreshAllDebounced) {
+      events.on("sections:changed", refreshAllDebounced);
+      events.on("schedules:changed", refreshAllDebounced);
+      events.on("students:changed", refreshAllDebounced);
+      events.on("enrollments:changed", refreshAllDebounced);
+      events.on("dashboard:page-activated", event => {
+        if (event.detail?.page !== "students") return;
+        if (events.isInvalid("sections") || events.isInvalid("students") || events.isInvalid("schedules") || events.isInvalid("enrollments")) {
+          events.clearInvalid("sections");
+          events.clearInvalid("students");
+          events.clearInvalid("schedules");
+          events.clearInvalid("enrollments");
+          refreshAllDebounced();
+        }
+      });
+    }
 
     try {
       await Promise.all([loadReferenceLists(), reloadStudentsData()]);
+      window.EduTrackModules = window.EduTrackModules || {};
+      window.EduTrackModules.students = {
+        refreshLookups: loadReferenceLists,
+        refreshList: reloadStudentsData,
+        refreshAll: async () => Promise.all([loadReferenceLists(), reloadStudentsData()]),
+      };
     } catch (err) {
       showFeedback(err.message || "Failed to load students.", true);
     }

@@ -199,6 +199,10 @@ function setActivePage(pageId) {
 
   const title = document.getElementById("topbar-title");
   if (title) title.textContent = pageTitles[pageId] || "Dashboard";
+
+  if (window.EduTrackEvents?.emit) {
+    window.EduTrackEvents.emit("dashboard:page-activated", { page: pageId });
+  }
 }
 
 function closeSidebar() {

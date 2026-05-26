@@ -85,6 +85,15 @@ def _deactivate_all_school_year_semesters(user):
     SchoolYearSemester.objects.filter(school_year__user=user).update(is_active=False)
 
 
+def deactivate_school_year(user, school_year):
+    if school_year.user_id != user.id:
+        raise serializers.ValidationError("You do not have access to this school year.")
+    SchoolYearSemester.objects.filter(
+        school_year=school_year,
+        semester__user=user,
+    ).update(is_active=False)
+
+
 def activate_school_year(user, school_year, preferred_semester_id=None):
     relation_qs = SchoolYearSemester.objects.filter(
         school_year=school_year,
@@ -130,6 +139,17 @@ def activate_school_year_semester(user, school_year_semester):
     school_year_semester.is_active = True
     school_year_semester.save(update_fields=["is_active"])
     return school_year_semester
+
+
+def ensure_schedule_term_is_active(schedule):
+    if schedule is None:
+        return
+    if not getattr(schedule, "school_year_semester_id", None):
+        return
+    if not schedule.school_year_semester.is_active:
+        raise serializers.ValidationError(
+            {"detail": "This schedule belongs to an inactive semester and cannot be modified."}
+        )
 
 
 def get_default_school_year_for_user(user):

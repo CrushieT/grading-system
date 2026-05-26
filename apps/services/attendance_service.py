@@ -6,6 +6,7 @@ from django.utils.dateparse import parse_date
 from rest_framework import serializers
 
 from apps.models import Attendance, Record, Schedule, Student
+from apps.services.setup_service import ensure_schedule_term_is_active
 
 
 STATUS_ALIASES = {
@@ -64,7 +65,7 @@ def build_day_time_from_date(target_date):
     return day_time
 
 
-def resolve_schedule_for_user(user, schedule_value):
+def resolve_schedule_for_user(user, schedule_value, require_active=False):
     schedule_id = schedule_value.id if isinstance(schedule_value, Schedule) else schedule_value
     try:
         schedule_id = int(schedule_id)
@@ -86,6 +87,8 @@ def resolve_schedule_for_user(user, schedule_value):
     )
     if schedule is None:
         raise serializers.ValidationError({"schedule": "Please select a valid schedule."})
+    if require_active:
+        ensure_schedule_term_is_active(schedule)
     return schedule
 
 
@@ -118,6 +121,7 @@ def get_record_for_student_schedule_for_user(user, student, schedule):
         student=student,
         schedule=schedule,
         schedule__user=user,
+        grade_period__isnull=True,
     ).first()
     if record is None:
         raise serializers.ValidationError(
@@ -203,7 +207,7 @@ def upsert_attendance_for_user(user, *, student_id, schedule_id, date_value, sta
         raise serializers.ValidationError({"status": "status is required."})
 
     student = resolve_student_for_user(user, student_id)
-    schedule = resolve_schedule_for_user(user, schedule_id)
+    schedule = resolve_schedule_for_user(user, schedule_id, require_active=True)
     record = get_record_for_student_schedule_for_user(user, student, schedule)
     target_date = normalize_attendance_date(date_value)
     normalized_status = normalize_attendance_status(status)

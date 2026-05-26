@@ -11,6 +11,7 @@ from apps.services.schedules_service import (
     ensure_schedule_period_deletable,
     get_schedule_period_queryset,
 )
+from apps.services.setup_service import ensure_schedule_term_is_active
 
 
 class PeriodListCreateAPIView(APIView):
@@ -157,5 +158,6 @@ class ScheduleDetailAPIView(APIView):
         schedule = self.get_object(request, pk)
         if schedule is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        ensure_schedule_term_is_active(schedule)
         schedule.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -183,7 +183,7 @@ class StudentSerializer(serializers.ModelSerializer):
         return f"{obj.first_name}{middle} {obj.last_name}".strip()
 
     def get_enrolled_schedules_count(self, obj):
-        return Record.objects.filter(student=obj, is_active=True).count()
+        return Record.objects.filter(student=obj, is_active=True, grade_period__isnull=True).count()
 
     def get_section_school_year_sem_label(self, obj):
         if not obj.section_id or not obj.section.school_year_sem_id:

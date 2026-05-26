@@ -1,5 +1,6 @@
 (() => {
   const REFRESH_STORAGE_KEY = "gd_refresh";
+  const events = window.EduTrackEvents || null;
 
   let accessToken = null;
   let refreshPromise = null;
@@ -21,6 +22,18 @@
 
   function getEl(id) {
     return document.getElementById(id);
+  }
+
+  function emitPeriodsChanged() {
+    if (!events) return;
+    events.invalidate("periods");
+    events.emit("periods:changed");
+  }
+
+  function emitSchedulesChanged() {
+    if (!events) return;
+    events.invalidate("schedules");
+    events.emit("schedules:changed");
   }
 
   function getRefreshToken() {
@@ -578,6 +591,7 @@
       await sendJson(url, method, payload, "Failed to save period.");
       closePeriodModal();
       await reloadPeriodsAndSchedules();
+      emitPeriodsChanged();
       showFeedback("Period saved.");
     } catch (err) {
       showModalError("period-slot-modal-error", err.message || "Failed to save period.");
@@ -636,6 +650,7 @@
       await sendJson(url, method, payload, "Failed to save schedule.");
       closeScheduleModal();
       await loadSchedulesList();
+      emitSchedulesChanged();
       showFeedback("Schedule saved.");
     } catch (err) {
       showModalError("schedule-modal-error", err.message || "Failed to save schedule.");
@@ -649,6 +664,8 @@
     if (response.status === 204) {
       closeDeleteModal();
       await reloadPeriodsAndSchedules();
+      if (String(state.deleteContext?.url || "").includes("/api/periods/")) emitPeriodsChanged();
+      if (String(state.deleteContext?.url || "").includes("/api/schedules/")) emitSchedulesChanged();
       showFeedback(state.deleteContext.successMessage);
       return;
     }
@@ -729,10 +746,50 @@
     });
 
     setupFilters();
+    const refreshAllDebounced = events?.debounce?.(
+      () => reloadPeriodsAndSchedules().catch(err => showFeedback(err.message || "Failed to refresh schedules.", true)),
+      220
+    );
+    const refreshLookupsDebounced = events?.debounce?.(
+      () => loadReferenceLists().catch(err => showFeedback(err.message || "Failed to refresh references.", true)),
+      220
+    );
+    if (events && refreshAllDebounced && refreshLookupsDebounced) {
+      events.on("school-setup:changed", refreshLookupsDebounced);
+      events.on("subjects:changed", refreshLookupsDebounced);
+      events.on("sections:changed", refreshLookupsDebounced);
+      events.on("grading-templates:changed", refreshLookupsDebounced);
+      events.on("periods:changed", refreshAllDebounced);
+      events.on("schedules:changed", refreshAllDebounced);
+      events.on("dashboard:page-activated", event => {
+        if (event.detail?.page !== "schedules") return;
+        if (events.isInvalid("schoolYearSemesters") || events.isInvalid("subjects") || events.isInvalid("sections") || events.isInvalid("gradingTemplates")) {
+          events.clearInvalid("schoolYearSemesters");
+          events.clearInvalid("subjects");
+          events.clearInvalid("sections");
+          events.clearInvalid("gradingTemplates");
+          refreshLookupsDebounced();
+        }
+        if (events.isInvalid("periods") || events.isInvalid("schedules")) {
+          events.clearInvalid("periods");
+          events.clearInvalid("schedules");
+          refreshAllDebounced();
+        }
+      });
+    }
 
     try {
       await loadReferenceLists();
       await reloadPeriodsAndSchedules();
+      window.EduTrackModules = window.EduTrackModules || {};
+      window.EduTrackModules.periodsSchedules = {
+        refreshLookups: loadReferenceLists,
+        refreshList: reloadPeriodsAndSchedules,
+        refreshAll: async () => {
+          await loadReferenceLists();
+          await reloadPeriodsAndSchedules();
+        },
+      };
     } catch (err) {
       showFeedback(err.message || "Failed to load periods and schedules.", true);
     }
