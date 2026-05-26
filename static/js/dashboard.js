@@ -517,6 +517,14 @@ function closeModal(modalId) {
   if (modal) modal.hidden = true;
 }
 
+function showSuccessModal(message, title = "Success") {
+  const titleEl = document.getElementById("success-modal-title");
+  const messageEl = document.getElementById("success-modal-message");
+  if (titleEl) titleEl.textContent = title;
+  if (messageEl) messageEl.textContent = message || "Action completed successfully.";
+  openModal("success-modal");
+}
+
 function updateWeightTotal() {
   const inputs = document.querySelectorAll("#modal-template input[data-action='update-weight-total']");
   const totalEl = document.getElementById("weight-total-val");
@@ -664,6 +672,7 @@ async function guardDashboard() {
 window.authFetch = authFetch;
 window.safeJson = safeJson;
 window.updateUserUI = updateUserUI;
+window.showSuccessModal = showSuccessModal;
 
 function setupBackForwardProtection() {
   history.replaceState({ page: "dashboard" }, "", "/dashboard.html");

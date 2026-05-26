@@ -728,6 +728,22 @@
   margin-top: 2px;
 }
 
+.success-modal-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.success-modal-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--green);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
 .modal-lg {
   width: 760px;
 }

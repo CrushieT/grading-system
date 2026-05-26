@@ -147,6 +147,9 @@
         window.updateUserUI(state.user);
       }
       showFeedback(data.message || "Account updated successfully.", false);
+      if (typeof window.showSuccessModal === "function") {
+        window.showSuccessModal(data.message || "Account updated successfully.", "Account Updated");
+      }
     } catch (_err) {
       showFeedback("Failed to save account changes.", true);
     } finally {
