@@ -51,6 +51,36 @@ def get_grade_period_queryset(user):
         time_end__isnull=True,
     )
 
+def get_current_active_grade_period(user):
+    return (
+        get_grade_period_queryset(user)
+        .filter(is_active=True)
+        .order_by("position", "id")
+        .first()
+    )
+
+
+def activate_grade_period(user, period):
+    if period.user_id != user.id:
+        raise serializers.ValidationError("You do not have access to this grade period.")
+    get_grade_period_queryset(user).update(is_active=False)
+    period.is_active = True
+    period.save(update_fields=["is_active"])
+    return period
+
+
+def ensure_grade_period_is_active_for_user(user, period, field_name="grade_period"):
+    current = get_current_active_grade_period(user)
+    if current is None:
+        raise serializers.ValidationError(
+            {"detail": "No active grading period is set. Please activate one in School Setup."}
+        )
+    if period.id != current.id:
+        raise serializers.ValidationError(
+            {field_name: "You can only modify data for the active grading period."}
+        )
+    return current
+
 
 def parse_school_year_name(name):
     if not name:

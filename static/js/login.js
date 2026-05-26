@@ -220,8 +220,12 @@ function setButtonLoading(btn, loading) {
   const label = btn.querySelector(".btn-label");
   const spinner = btn.querySelector(".btn-spinner");
   btn.disabled = loading;
-  if (label) label.hidden = loading;
-  if (spinner) spinner.hidden = !loading;
+  if (spinner) {
+    if (label) label.hidden = loading;
+    spinner.hidden = !loading;
+  } else if (label) {
+    label.hidden = false;
+  }
 }
 
 function isEmpty(value) {
@@ -230,6 +234,45 @@ function isEmpty(value) {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function isValidName(value) {
+  return /^[A-Za-z][A-Za-z\s'.-]*$/.test(String(value || "").trim());
+}
+
+function clearRegisterErrors() {
+  [
+    "err-reg-fname",
+    "err-reg-lname",
+    "err-reg-email",
+    "err-reg-password",
+    "err-reg-confirm",
+    "err-reg-school",
+    "err-reg-year-start",
+    "err-reg-year-end",
+    "err-reg-sem",
+  ].forEach(clearError);
+}
+
+function mapRegisterApiErrors(payload) {
+  if (!payload || typeof payload !== "object") return;
+  const map = {
+    first_name: "err-reg-fname",
+    last_name: "err-reg-lname",
+    email: "err-reg-email",
+    password: "err-reg-password",
+    confirm_password: "err-reg-confirm",
+    school_name: "err-reg-school",
+    year_start: "err-reg-year-start",
+    year_end: "err-reg-year-end",
+    semester: "err-reg-sem",
+  };
+  Object.entries(map).forEach(([key, errId]) => {
+    const value = payload[key];
+    if (!value) return;
+    const msg = Array.isArray(value) ? String(value[0] || "") : String(value);
+    if (msg) setError(errId, msg);
+  });
 }
 
 function attachLiveClear(inputId, errorId) {
@@ -282,12 +325,24 @@ function setupStepOneValidation() {
     if (isEmpty(fname)) {
       setError("err-reg-fname", "Required.");
       valid = false;
+    } else if (fname.length > 150) {
+      setError("err-reg-fname", "Must not exceed 150 characters.");
+      valid = false;
+    } else if (!isValidName(fname)) {
+      setError("err-reg-fname", "Use letters and basic name symbols only.");
+      valid = false;
     } else {
       clearError("err-reg-fname");
     }
 
     if (isEmpty(lname)) {
       setError("err-reg-lname", "Required.");
+      valid = false;
+    } else if (lname.length > 150) {
+      setError("err-reg-lname", "Must not exceed 150 characters.");
+      valid = false;
+    } else if (!isValidName(lname)) {
+      setError("err-reg-lname", "Use letters and basic name symbols only.");
       valid = false;
     } else {
       clearError("err-reg-lname");
@@ -298,6 +353,9 @@ function setupStepOneValidation() {
       valid = false;
     } else if (!isValidEmail(email)) {
       setError("err-reg-email", "Enter a valid email address.");
+      valid = false;
+    } else if (email.length > 254) {
+      setError("err-reg-email", "Email is too long.");
       valid = false;
     } else {
       clearError("err-reg-email");
@@ -337,7 +395,13 @@ function setupLoginSubmission() {
     let valid = true;
 
     if (isEmpty(loginId)) {
-      setError("err-login-email", "Username or email is required.");
+      setError("err-login-email", "Email is required.");
+      valid = false;
+    } else if (!isValidEmail(loginId)) {
+      setError("err-login-email", "Enter a valid email address.");
+      valid = false;
+    } else if (loginId.length > 254) {
+      setError("err-login-email", "Email is too long.");
       valid = false;
     } else {
       clearError("err-login-email");
@@ -362,7 +426,7 @@ function setupLoginSubmission() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: loginId,
+          email: loginId,
           password,
         }),
       });
@@ -372,7 +436,7 @@ function setupLoginSubmission() {
         showBanner(
           "login-banner",
           "login-banner-msg",
-          readApiError(data, "Invalid username/email or password.")
+          readApiError(data, "Invalid email or password.")
         );
         return;
       }
@@ -409,11 +473,62 @@ function setupRegistrationSubmission() {
 
     let valid = true;
 
+    clearRegisterErrors();
+
     if (isEmpty(school)) {
       setError("err-reg-school", "School name is required.");
       valid = false;
+    } else if (school.length > 200) {
+      setError("err-reg-school", "Must not exceed 200 characters.");
+      valid = false;
     } else {
       clearError("err-reg-school");
+    }
+
+    if (isEmpty(firstName)) {
+      setError("err-reg-fname", "First name is required.");
+      valid = false;
+    } else if (firstName.length > 150) {
+      setError("err-reg-fname", "Must not exceed 150 characters.");
+      valid = false;
+    } else if (!isValidName(firstName)) {
+      setError("err-reg-fname", "Use letters and basic name symbols only.");
+      valid = false;
+    }
+
+    if (isEmpty(lastName)) {
+      setError("err-reg-lname", "Last name is required.");
+      valid = false;
+    } else if (lastName.length > 150) {
+      setError("err-reg-lname", "Must not exceed 150 characters.");
+      valid = false;
+    } else if (!isValidName(lastName)) {
+      setError("err-reg-lname", "Use letters and basic name symbols only.");
+      valid = false;
+    }
+
+    if (isEmpty(email)) {
+      setError("err-reg-email", "Email is required.");
+      valid = false;
+    } else if (!isValidEmail(email)) {
+      setError("err-reg-email", "Enter a valid email address.");
+      valid = false;
+    } else if (email.length > 254) {
+      setError("err-reg-email", "Email is too long.");
+      valid = false;
+    }
+
+    if (password.length < 8) {
+      setError("err-reg-password", "Must be at least 8 characters.");
+      valid = false;
+    } else if (password.length > 128) {
+      setError("err-reg-password", "Must not exceed 128 characters.");
+      valid = false;
+    }
+
+    if (confirmPassword !== password) {
+      setError("err-reg-confirm", "Passwords do not match.");
+      valid = false;
     }
 
     if (!yearStart || yearStart < 2000) {
@@ -464,6 +579,7 @@ function setupRegistrationSubmission() {
 
       const data = await safeJson(response);
       if (!response.ok) {
+        mapRegisterApiErrors(data);
         showBanner(
           "reg-banner",
           "reg-banner-msg",

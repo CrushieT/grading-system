@@ -153,111 +153,75 @@
           <div class="stat-grid">
             <div class="stat-card stat-accent">
               <div class="stat-label">Schedules</div>
-              <div class="stat-value">6</div>
-              <div class="stat-desc">This semester</div>
+              <div class="stat-value" id="db-stat-schedules">--</div>
+              <div class="stat-desc">Total schedules</div>
             </div>
             <div class="stat-card stat-blue">
               <div class="stat-label">Students</div>
-              <div class="stat-value">183</div>
-              <div class="stat-desc">All classes</div>
+              <div class="stat-value" id="db-stat-students">--</div>
+              <div class="stat-desc">Total students</div>
             </div>
             <div class="stat-card stat-green">
               <div class="stat-label">Assessments</div>
-              <div class="stat-value">42</div>
-              <div class="stat-desc">Created</div>
+              <div class="stat-value" id="db-stat-assessments">--</div>
+              <div class="stat-desc">Total assessments</div>
             </div>
             <div class="stat-card stat-amber">
-              <div class="stat-label">Attendance</div>
-              <div class="stat-value">91%</div>
-              <div class="stat-desc">This month</div>
+              <div class="stat-label">Grading Templates</div>
+              <div class="stat-value" id="db-stat-templates">--</div>
+              <div class="stat-desc">Active templates</div>
             </div>
           </div>
 
           <div class="two-col">
             <article class="card">
               <div class="card-header">
-                <span class="card-title">Active Schedules</span>
-                <span class="badge badge-green">1st Sem</span>
+                <span class="card-title">Schedules</span>
+                <span class="badge badge-green" id="db-schedules-badge">--</span>
               </div>
-              <div class="card-body compact-list">
-                <div class="schedule-row-accent">
-                  <span class="schedule-dot dot-blue"></span>
-                  <div class="schedule-text">
-                    <div class="schedule-name">Mathematics 10</div>
-                    <div class="schedule-meta">Section A - 34 students</div>
-                  </div>
-                  <span class="badge badge-blue">Active</span>
-                </div>
-                <div class="schedule-row-accent">
-                  <span class="schedule-dot dot-green"></span>
-                  <div class="schedule-text">
-                    <div class="schedule-name">Science 9</div>
-                    <div class="schedule-meta">Section B - 31 students</div>
-                  </div>
-                  <span class="badge badge-green">Active</span>
-                </div>
-                <div class="schedule-row-accent">
-                  <span class="schedule-dot dot-amber"></span>
-                  <div class="schedule-text">
-                    <div class="schedule-name">English 11</div>
-                    <div class="schedule-meta">Section C - 29 students</div>
-                  </div>
-                  <span class="badge badge-amber">Midterm</span>
-                </div>
-                <div class="schedule-row-accent">
-                  <span class="schedule-dot dot-gray"></span>
-                  <div class="schedule-text">
-                    <div class="schedule-name">Filipino 10</div>
-                    <div class="schedule-meta">Section D - 32 students</div>
-                  </div>
-                  <span class="badge badge-gray">Prelim</span>
-                </div>
+              <div class="card-body compact-list" id="db-schedules-list">
+                <div class="setup-sub">Loading schedules...</div>
               </div>
             </article>
 
             <article class="card">
               <div class="card-header">
-                <span class="card-title">Recent Activity</span>
+                <span class="card-title">Academic Snapshot</span>
               </div>
-              <div class="card-body compact-list">
-                <div class="activity-item">
-                  <span class="activity-dot dot-green"></span>
-                  <div>
-                    <div class="activity-text">Attendance recorded for <strong>Mathematics 10 - A</strong></div>
-                    <div class="activity-time">Today, 8:15 AM</div>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <span class="activity-dot dot-blue"></span>
-                  <div>
-                    <div class="activity-text">Quiz 2 scores entered for <strong>Science 9 - B</strong></div>
-                    <div class="activity-time">Yesterday, 3:40 PM</div>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <span class="activity-dot dot-amber"></span>
-                  <div>
-                    <div class="activity-text">New student enrolled: <strong>Juan dela Cruz</strong></div>
-                    <div class="activity-time">Nov 4, 10:00 AM</div>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <span class="activity-dot dot-gray"></span>
-                  <div>
-                    <div class="activity-text">Midterm exam created for <strong>Filipino 10 - D</strong></div>
-                    <div class="activity-time">Nov 3, 2:15 PM</div>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <span class="activity-dot dot-red"></span>
-                  <div>
-                    <div class="activity-text">Grade period closed: <strong>Prelim - Math 10</strong></div>
-                    <div class="activity-time">Oct 28, 4:00 PM</div>
-                  </div>
-                </div>
+              <div class="card-body compact-list" id="db-academic-snapshot">
+                <div class="setup-sub">Loading snapshot...</div>
               </div>
             </article>
           </div>
+
+          <div class="two-col">
+            <article class="card">
+              <div class="card-header">
+                <span class="card-title">Needs Attention</span>
+              </div>
+              <div class="card-body compact-list" id="db-needs-attention">
+                <div class="setup-sub">Loading attention items...</div>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-header">
+                <span class="card-title">Today&apos;s Classes</span>
+              </div>
+              <div class="card-body compact-list" id="db-today-classes">
+                <div class="setup-sub">Loading today&apos;s classes...</div>
+              </div>
+            </article>
+          </div>
+
+          <article class="card">
+            <div class="card-header">
+              <span class="card-title">Assessment Progress</span>
+            </div>
+            <div class="card-body compact-list" id="db-assessment-progress">
+              <div class="setup-sub">Loading assessment progress...</div>
+            </div>
+          </article>
         </section>
 
         {% include 'dashboard/sections/schedules.html' %}
@@ -333,15 +297,17 @@
           <div class="two-col">
             <div>
               <div class="settings-title">Account</div>
+              <div class="setup-feedback" id="settings-account-feedback" hidden></div>
               <article class="card">
                 <div class="card-body">
                   <div class="form-grid single-col">
-                    <div class="form-group"><label>Display Name</label><input type="text" value="Teacher Admin"></div>
-                    <div class="form-group"><label>Username</label><input type="text" value="teacher_admin"></div>
-                    <div class="form-group"><label>Current Password</label><input type="password" placeholder="********"></div>
-                    <div class="form-group"><label>New Password</label><input type="password" placeholder="Min. 8 characters"></div>
-                    <div class="form-group"><label>Confirm New Password</label><input type="password" placeholder="Repeat new password"></div>
-                    <button type="button" class="btn btn-primary fit-btn">Save Changes</button>
+                    <div class="form-group"><label>First Name</label><input type="text" id="settings-first-name" autocomplete="given-name"><div class="setup-modal-error" id="settings-first-name-error" hidden></div></div>
+                    <div class="form-group"><label>Last Name</label><input type="text" id="settings-last-name" autocomplete="family-name"><div class="setup-modal-error" id="settings-last-name-error" hidden></div></div>
+                    <div class="form-group"><label>Email</label><input type="email" id="settings-email" autocomplete="email"><div class="setup-modal-error" id="settings-email-error" hidden></div></div>
+                    <div class="form-group"><label>Current Password</label><input type="password" id="settings-current-password" autocomplete="current-password" placeholder="Enter only if changing password"><div class="setup-modal-error" id="settings-current-password-error" hidden></div></div>
+                    <div class="form-group"><label>New Password</label><input type="password" id="settings-new-password" autocomplete="new-password" placeholder="Min. 8 characters"><div class="setup-modal-error" id="settings-new-password-error" hidden></div></div>
+                    <div class="form-group"><label>Confirm New Password</label><input type="password" id="settings-confirm-password" autocomplete="new-password" placeholder="Repeat new password"><div class="setup-modal-error" id="settings-confirm-password-error" hidden></div></div>
+                    <button type="button" class="btn btn-primary fit-btn" data-action="settings-save-account" id="settings-save-account-btn">Save Changes</button>
                   </div>
                 </div>
               </article>
@@ -758,6 +724,28 @@
       </div>
     </div>
 
+    <div class="modal-overlay" id="success-modal" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title" id="success-modal-title">Success</div>
+          <button type="button" class="close-btn" data-action="close-modal" data-modal-target="success-modal" aria-label="Close success modal">x</button>
+        </div>
+        <div class="modal-body">
+          <div class="success-modal-wrap">
+            <div class="success-modal-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <p class="modal-copy" id="success-modal-message">Action completed successfully.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-action="close-modal" data-modal-target="success-modal">Okay</button>
+        </div>
+      </div>
+    </div>
+
     <script src="{% static 'js/dashboard/dashboard-events.js' %}" defer></script>
     <script src="{% static 'js/dashboard/pages/schedules.js' %}" defer></script>
     <script src="{% static 'js/dashboard/pages/students.js' %}" defer></script>
@@ -769,6 +757,7 @@
     <script src="{% static 'js/dashboard/pages/subjects-sections.js' %}" defer></script>
     <script src="{% static 'js/dashboard/pages/periods-schedules.js' %}" defer></script>
     <script src="{% static 'js/dashboard/pages/grading-setup.js' %}" defer></script>
+    <script src="{% static 'js/dashboard/pages/settings.js' %}" defer></script>
     <script src="{% static 'js/dashboard.js' %}" defer></script>
   </body>
 </html>

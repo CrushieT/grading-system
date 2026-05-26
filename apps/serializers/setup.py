@@ -4,10 +4,12 @@ from rest_framework import serializers
 
 from apps.models import Period, SchoolYear, SchoolYearSemester, Semester
 from apps.services.setup_service import (
+    activate_grade_period,
     deactivate_school_year,
     activate_school_year,
     activate_school_year_semester,
     build_school_year_name,
+    get_grade_period_queryset,
     get_default_school_year_for_user,
     get_school_year_is_active,
     get_semester_active_link,
@@ -342,4 +344,33 @@ class GradePeriodSerializer(serializers.ModelSerializer):
         user = request.user if request else None
         if user is None:
             raise serializers.ValidationError("User context is required.")
-        return Period.objects.create(user=user, **validated_data)
+        period = Period.objects.create(user=user, **validated_data)
+        if period.is_active:
+            activate_grade_period(user, period)
+        return period
+
+    def update(self, instance, validated_data):
+        user = self.context["request"].user
+        requested_is_active = validated_data.get("is_active", instance.is_active)
+
+        if instance.is_active and requested_is_active is False:
+            has_other_active = (
+                get_grade_period_queryset(user)
+                .exclude(id=instance.id)
+                .filter(is_active=True)
+                .exists()
+            )
+            if not has_other_active:
+                raise serializers.ValidationError(
+                    {"is_active": "At least one grading period must stay active."}
+                )
+
+        for field in ("name", "position", "weight", "is_active"):
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+        instance.save()
+
+        if requested_is_active:
+            activate_grade_period(user, instance)
+
+        return instance

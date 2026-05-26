@@ -14,7 +14,7 @@ from apps.models import (
     Schedule,
 )
 from apps.services.grading_service import get_active_default_template
-from apps.services.setup_service import ensure_schedule_term_is_active
+from apps.services.setup_service import ensure_grade_period_is_active_for_user, ensure_schedule_term_is_active
 from apps.services.setup_service import get_grade_period_queryset
 
 
@@ -110,6 +110,7 @@ def resolve_schedule_for_user(user, schedule, require_active=False):
 
 def ensure_assessment_schedule_active(assessment):
     ensure_schedule_term_is_active(assessment.schedule)
+    ensure_grade_period_is_active_for_user(assessment.schedule.user, assessment.period)
 
 
 def resolve_grade_period_for_user(user, grade_period):
@@ -333,3 +334,8 @@ def bulk_save_assessment_scores(assessment, items):
         "saved_count": created_count + updated_count + cleared_count,
     }
     return rows, summary
+    ensure_grade_period_is_active_for_user(
+        assessment.schedule.user,
+        assessment.period,
+        field_name="grade_period",
+    )

@@ -299,6 +299,8 @@
         const rowClass = index === periods.length - 1 ? "period-row no-border" : "period-row";
         const weight = Number(item.weight || 0);
         runningTotal += weight;
+        const statusClass = item.is_active ? "badge-green" : "badge-gray";
+        const statusText = item.is_active ? "Current" : "Inactive";
         return `
           <div class="${rowClass}">
             <div>
@@ -306,7 +308,9 @@
               <div class="setup-sub">Order ${item.position}</div>
             </div>
             <div class="setup-actions">
+              <span class="badge ${statusClass} setup-status">${statusText}</span>
               <span class="weight-chip">${weight.toFixed(2)}%</span>
+              <button type="button" class="icon-btn" data-action="setup-set-period-active" data-id="${item.id}">Set Active</button>
               <button type="button" class="icon-btn" data-action="setup-edit-period" data-id="${item.id}">Edit</button>
               <button type="button" class="icon-btn danger" data-action="setup-delete-period" data-id="${item.id}">Delete</button>
             </div>
@@ -640,6 +644,22 @@
     }
   }
 
+  async function quickSetGradePeriodActive(id) {
+    try {
+      await sendJson(
+        `/api/grade-periods/${id}/`,
+        "PATCH",
+        { is_active: true },
+        "Failed to activate grade period."
+      );
+      await reloadSetupLists();
+      emitSchoolSetupChanged();
+      showSetupFeedback("Grade period activated.");
+    } catch (err) {
+      showSetupFeedback(err.message || "Failed to activate grade period.", true);
+    }
+  }
+
   async function confirmDelete() {
     if (!state.deleteContext) return;
 
@@ -675,6 +695,7 @@
 
     if (action === "setup-set-year-active") quickSetSchoolYearActive(id);
     if (action === "setup-set-semester-active") quickSetSemesterActive(id);
+    if (action === "setup-set-period-active") quickSetGradePeriodActive(id);
 
     if (action === "setup-delete-year") {
       openDeleteConfirm("Delete this school year?", {

@@ -270,7 +270,13 @@ def get_weighted_average_rows(user, schedule_id, remarks=None):
     if schedule is None:
         raise serializers.ValidationError({"detail": "Please select a schedule."})
 
-    periods = list(Period.objects.filter(user=user, is_active=True).order_by("position", "id"))
+    periods = list(
+        Period.objects.filter(
+            user=user,
+            time_start__isnull=True,
+            time_end__isnull=True,
+        ).order_by("position", "id")
+    )
     if not periods:
         return []
 

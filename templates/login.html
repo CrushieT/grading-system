@@ -60,8 +60,8 @@
 
           <div class="auth-form" id="form-login">
             <div class="form-group">
-              <label for="login-email">Username or email</label>
-              <input type="text" id="login-email" placeholder="teacher01 or you@school.edu" autocomplete="username">
+              <label for="login-email">Email address</label>
+              <input type="email" id="login-email" placeholder="you@school.edu" autocomplete="username" maxlength="254" inputmode="email">
               <span class="field-error" id="err-login-email"></span>
             </div>
 
@@ -71,7 +71,7 @@
                 <button type="button" class="link-btn" id="forgot-btn">Forgot password?</button>
               </div>
               <div class="input-wrap">
-                <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+                <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" maxlength="128">
                 <button type="button" class="eye-btn" data-target="login-password" aria-label="Toggle password">
                   <svg class="eye-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
                 </button>
@@ -81,9 +81,6 @@
 
             <button class="btn btn-primary btn-full" id="login-submit">
               <span class="btn-label">Sign in</span>
-              <span class="btn-spinner" hidden>
-                <svg class="spin" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="rgba(255,255,255,0.35)" stroke-width="2"/><path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-              </span>
             </button>
 
             <div class="form-error-banner" id="login-banner" hidden>
@@ -130,26 +127,26 @@
               <div class="form-row-2">
                 <div class="form-group">
                   <label for="reg-fname">First name</label>
-                  <input type="text" id="reg-fname" placeholder="Maria" autocomplete="given-name">
+                  <input type="text" id="reg-fname" placeholder="Maria" autocomplete="given-name" maxlength="150">
                   <span class="field-error" id="err-reg-fname"></span>
                 </div>
                 <div class="form-group">
                   <label for="reg-lname">Last name</label>
-                  <input type="text" id="reg-lname" placeholder="Santos" autocomplete="family-name">
+                  <input type="text" id="reg-lname" placeholder="Santos" autocomplete="family-name" maxlength="150">
                   <span class="field-error" id="err-reg-lname"></span>
                 </div>
               </div>
 
               <div class="form-group">
                 <label for="reg-email">Email address</label>
-                <input type="email" id="reg-email" placeholder="you@school.edu" autocomplete="email">
+                <input type="email" id="reg-email" placeholder="you@school.edu" autocomplete="email" maxlength="254" inputmode="email">
                 <span class="field-error" id="err-reg-email"></span>
               </div>
 
               <div class="form-group">
                 <label for="reg-password">Password</label>
                 <div class="input-wrap">
-                  <input type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password">
+                  <input type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password" minlength="8" maxlength="128">
                   <button type="button" class="eye-btn" data-target="reg-password" aria-label="Toggle password">
                     <svg class="eye-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
                   </button>
@@ -160,7 +157,7 @@
               <div class="form-group">
                 <label for="reg-confirm">Confirm password</label>
                 <div class="input-wrap">
-                  <input type="password" id="reg-confirm" placeholder="Repeat password" autocomplete="new-password">
+                  <input type="password" id="reg-confirm" placeholder="Repeat password" autocomplete="new-password" minlength="8" maxlength="128">
                   <button type="button" class="eye-btn" data-target="reg-confirm" aria-label="Toggle password">
                     <svg class="eye-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
                   </button>
@@ -182,19 +179,19 @@
             <div class="auth-form">
               <div class="form-group">
                 <label for="reg-school-name">School / Institution name</label>
-                <input type="text" id="reg-school-name" placeholder="e.g. Naga City National High School">
+                <input type="text" id="reg-school-name" placeholder="e.g. Naga City National High School" maxlength="200">
                 <span class="field-error" id="err-reg-school"></span>
               </div>
 
               <div class="form-row-2">
                 <div class="form-group">
                   <label for="reg-year-start">School year start</label>
-                  <input type="number" id="reg-year-start" placeholder="2024" min="2000" max="2100">
+                  <input type="number" id="reg-year-start" placeholder="2024" min="2000" max="2100" step="1" inputmode="numeric">
                   <span class="field-error" id="err-reg-year-start"></span>
                 </div>
                 <div class="form-group">
                   <label for="reg-year-end">School year end</label>
-                  <input type="number" id="reg-year-end" placeholder="2025" min="2000" max="2100">
+                  <input type="number" id="reg-year-end" placeholder="2025" min="2000" max="2100" step="1" inputmode="numeric">
                   <span class="field-error" id="err-reg-year-end"></span>
                 </div>
               </div>
@@ -223,9 +220,6 @@
                 <button class="btn btn-secondary" id="reg-back-1">← Back</button>
                 <button class="btn btn-primary" id="reg-next-2">
                   <span class="btn-label">Finish setup</span>
-                  <span class="btn-spinner" hidden>
-                    <svg class="spin" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="rgba(255,255,255,0.35)" stroke-width="2"/><path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-                  </span>
                 </button>
               </div>
 

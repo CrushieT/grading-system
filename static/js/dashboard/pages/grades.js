@@ -415,6 +415,9 @@
         events.emit("grades:changed");
       }
       showFeedback(payload.message || "Grades computed.");
+      if (typeof window.showSuccessModal === "function") {
+        window.showSuccessModal(payload.message || "Grades computed.", "Grades Updated");
+      }
     } catch (err) {
       showFeedback(err.message || "Failed to compute grades.", true);
     } finally {
