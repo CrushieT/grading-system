@@ -30,3 +30,40 @@
   font-size: 12px;
   color: var(--text-3);
 }
+
+.scores-modal-error {
+  margin: 12px 20px 0;
+}
+
+.score-input.is-invalid {
+  border-color: var(--red);
+}
+
+#page-assessments #assessments-table-body .setup-sub {
+  text-align: center;
+}
+
+#page-assessments .search-box {
+  flex: 1;
+}
+
+#page-assessments .filter-select {
+  min-width: 190px;
+}
+
+#modal-assessment textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  resize: vertical;
+}
+
+#modal-assessment textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}

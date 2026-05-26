@@ -246,6 +246,53 @@
     return getSectionYearLevel(getScheduleSectionId(schedule));
   }
 
+  function parseTimeToMinutes(raw) {
+    const text = String(raw || "").trim();
+    const match = text.match(/^(\d{2}):(\d{2})$/);
+    if (!match) return null;
+    const hour = Number(match[1]);
+    const minute = Number(match[2]);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+    return hour * 60 + minute;
+  }
+
+  function getScheduleTimeRange(schedule) {
+    if (!schedule || !schedule.period_time) return null;
+    const [startRaw, endRaw] = String(schedule.period_time).split("-");
+    const start = parseTimeToMinutes(startRaw);
+    const end = parseTimeToMinutes(endRaw);
+    if (start == null || end == null || end <= start) return null;
+    return { start, end };
+  }
+
+  function schedulesTimeConflict(scheduleA, scheduleB) {
+    if (!scheduleA || !scheduleB) return false;
+    if (!scheduleA.day || !scheduleB.day || scheduleA.day !== scheduleB.day) return false;
+
+    const periodA = parseId(scheduleA.period);
+    const periodB = parseId(scheduleB.period);
+    if (periodA && periodB && periodA === periodB) return true;
+
+    const rangeA = getScheduleTimeRange(scheduleA);
+    const rangeB = getScheduleTimeRange(scheduleB);
+    if (!rangeA || !rangeB) return false;
+    return rangeA.start < rangeB.end && rangeB.start < rangeA.end;
+  }
+
+  function hasStudentScheduleConflict(studentId, schedule) {
+    const sid = parseId(studentId);
+    if (!sid || !schedule) return false;
+    const activeEnrollments = state.enrollments.filter(
+      item => item.is_active !== false && Number(item.student) === sid
+    );
+    for (const enrollment of activeEnrollments) {
+      const existingSchedule = getScheduleById(enrollment.schedule);
+      if (!existingSchedule || Number(existingSchedule.id) === Number(schedule.id)) continue;
+      if (schedulesTimeConflict(schedule, existingSchedule)) return true;
+    }
+    return false;
+  }
+
   function isStudentCompatibleWithSchedule(student, schedule) {
     if (!student || !schedule) return false;
 
@@ -280,6 +327,7 @@
     if (!schedule) return [];
     return state.students.filter(student => {
       if (!isStudentCompatibleWithSchedule(student, schedule)) return false;
+      if (hasStudentScheduleConflict(student.id, schedule)) return false;
       return !isStudentAlreadyEnrolled(student.id, schedule.id);
     });
   }
@@ -289,6 +337,7 @@
     if (!student) return [];
     return state.schedules.filter(schedule => {
       if (!isStudentCompatibleWithSchedule(student, schedule)) return false;
+      if (hasStudentScheduleConflict(student.id, schedule)) return false;
       return !isStudentAlreadyEnrolled(student.id, schedule.id);
     });
   }
@@ -601,6 +650,7 @@
       !!studentObj &&
       !!scheduleObj &&
       isStudentCompatibleWithSchedule(studentObj, scheduleObj) &&
+      !hasStudentScheduleConflict(studentObj.id, scheduleObj) &&
       !isStudentAlreadyEnrolled(student, schedule);
     saveBtn.disabled = !valid;
   }
@@ -790,6 +840,13 @@
     }
     if (!isStudentCompatibleWithSchedule(studentObj, scheduleObj)) {
       showModalError("enroll-modal-error", "Student is not compatible with this schedule.");
+      return;
+    }
+    if (hasStudentScheduleConflict(studentObj.id, scheduleObj)) {
+      showModalError(
+        "enroll-modal-error",
+        "This student already has another schedule conflict at this day and time."
+      );
       return;
     }
     if (isStudentAlreadyEnrolled(student, schedule)) {
