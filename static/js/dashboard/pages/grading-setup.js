@@ -1,5 +1,6 @@
 (() => {
   const REFRESH_STORAGE_KEY = "gd_refresh";
+  const events = window.EduTrackEvents || null;
   const CUSTOM_COMPONENT_VALUE = "__custom__";
   const COMPONENT_OPTIONS = [
     "Quiz",
@@ -543,6 +544,10 @@
       await sendJson(url, method, payload, "Failed to save grading template.");
       closeTemplateModal();
       await loadTemplates();
+      if (events) {
+        events.invalidate("gradingTemplates");
+        events.emit("grading-templates:changed");
+      }
       showFeedback("Grading template saved.");
     } catch (err) {
       showModalError("grading-template-modal-error", err.message || "Failed to save grading template.");
@@ -558,6 +563,10 @@
         "Failed to set default template."
       );
       await loadTemplates();
+      if (events) {
+        events.invalidate("gradingTemplates");
+        events.emit("grading-templates:changed");
+      }
       showFeedback("Default grading template updated.");
     } catch (err) {
       showFeedback(err.message || "Failed to set default template.", true);
@@ -572,6 +581,10 @@
     if (response.status === 204) {
       closeDeleteModal();
       await loadTemplates();
+      if (events) {
+        events.invalidate("gradingTemplates");
+        events.emit("grading-templates:changed");
+      }
       showFeedback("Grading template deleted.");
       return;
     }
@@ -648,9 +661,27 @@
     });
 
     setupRealtimeEvents();
+    const refreshDebounced = events?.debounce?.(
+      () => loadTemplates().catch(err => showFeedback(err.message || "Failed to refresh grading templates.", true)),
+      220
+    );
+    if (events && refreshDebounced) {
+      events.on("grading-templates:changed", refreshDebounced);
+      events.on("dashboard:page-activated", event => {
+        if (event.detail?.page !== "settings") return;
+        if (events.isInvalid("gradingTemplates")) {
+          events.clearInvalid("gradingTemplates");
+          refreshDebounced();
+        }
+      });
+    }
 
     try {
       await loadTemplates();
+      window.EduTrackModules = window.EduTrackModules || {};
+      window.EduTrackModules.gradingSetup = {
+        refreshAll: loadTemplates,
+      };
     } catch (err) {
       showFeedback(err.message || "Failed to load grading templates.", true);
     }

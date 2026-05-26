@@ -73,7 +73,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"status": "status is required."})
 
         student = resolve_student_for_user(request.user, student_value)
-        schedule = resolve_schedule_for_user(request.user, schedule_value)
+        schedule = resolve_schedule_for_user(request.user, schedule_value, require_active=True)
         record = get_record_for_student_schedule_for_user(request.user, student, schedule)
         target_date = normalize_attendance_date(date_value)
         normalized_status = normalize_attendance_status(status_value)

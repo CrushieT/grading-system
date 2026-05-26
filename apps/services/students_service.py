@@ -149,6 +149,7 @@ def get_student_enrollment_queryset_for_user(user):
         schedule__user=user,
         schedule__school_year_semester__school_year__user=user,
         schedule__school_year_semester__semester__user=user,
+        grade_period__isnull=True,
     )
 
 
@@ -219,7 +220,7 @@ def _schedules_time_conflict(schedule_a, schedule_b):
 def validate_student_enrollment_time_conflict(student, schedule, exclude_id=None):
     queryset = (
         Record.objects.select_related("schedule__period", "schedule__subject", "schedule__section")
-        .filter(student=student, is_active=True, schedule__day=schedule.day)
+        .filter(student=student, is_active=True, grade_period__isnull=True, schedule__day=schedule.day)
         .exclude(schedule_id=schedule.id)
     )
     if exclude_id is not None:
@@ -240,7 +241,12 @@ def validate_student_enrollment_time_conflict(student, schedule, exclude_id=None
 
 
 def validate_duplicate_active_enrollment(student, schedule, exclude_id=None):
-    queryset = Record.objects.filter(student=student, schedule=schedule, is_active=True)
+    queryset = Record.objects.filter(
+        student=student,
+        schedule=schedule,
+        is_active=True,
+        grade_period__isnull=True,
+    )
     if exclude_id is not None:
         queryset = queryset.exclude(id=exclude_id)
     if queryset.exists():

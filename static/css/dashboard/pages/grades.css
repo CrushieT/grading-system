@@ -63,3 +63,25 @@
 .empty-text {
   color: var(--text-3);
 }
+
+.grades-stat-grid .stat-card {
+  padding: 12px 14px;
+}
+
+.grades-stat-grid .stat-label {
+  font-size: 11px;
+}
+
+.grades-stat-grid .stat-value {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.grades-stat-grid .stat-desc {
+  font-size: 12px;
+}
+
+.grades-records-wrap {
+  max-height: 420px;
+  overflow: auto;
+}

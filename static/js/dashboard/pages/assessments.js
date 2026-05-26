@@ -1,5 +1,6 @@
 (() => {
   const REFRESH_STORAGE_KEY = "gd_refresh";
+  const events = window.EduTrackEvents || null;
 
   let accessToken = null;
   let refreshPromise = null;
@@ -605,6 +606,10 @@
       await sendJson(url, method, payload, "Failed to save assessment.");
       closeAssessmentModal();
       await loadAssessments();
+      if (events) {
+        events.invalidate("assessments");
+        events.emit("assessments:changed");
+      }
       showFeedback("Assessment saved.");
     } catch (err) {
       showModalError("assessment-modal-error", err.message || "Failed to save assessment.");
@@ -635,6 +640,10 @@
     if (response.status === 204) {
       closeDeleteModal();
       await loadAssessments();
+      if (events) {
+        events.invalidate("assessments");
+        events.emit("assessments:changed");
+      }
       showFeedback("Assessment deleted.");
       return;
     }
@@ -854,6 +863,10 @@
       );
       renderScoresRows(normalizeList(payload.rows), maxScore);
       await loadAssessments();
+      if (events) {
+        events.invalidate("scores");
+        events.emit("scores:changed", { assessment: state.scoreAssessmentId });
+      }
       showFeedback("Scores saved.");
     } catch (err) {
       showModalError("scores-modal-error", err.message || "Failed to save scores.");
@@ -946,10 +959,39 @@
     }
 
     setupFilters();
+    const refreshDebounced = events?.debounce?.(
+      () => Promise.all([loadReferenceData(), loadAssessments()]).catch(err => showFeedback(err.message || "Failed to refresh assessments.", true)),
+      220
+    );
+    if (events && refreshDebounced) {
+      events.on("schedules:changed", refreshDebounced);
+      events.on("school-setup:changed", refreshDebounced);
+      events.on("grading-templates:changed", refreshDebounced);
+      events.on("assessments:changed", refreshDebounced);
+      events.on("dashboard:page-activated", event => {
+        if (event.detail?.page !== "assessments") return;
+        if (events.isInvalid("schedules") || events.isInvalid("gradePeriods") || events.isInvalid("gradingTemplates") || events.isInvalid("assessments")) {
+          events.clearInvalid("schedules");
+          events.clearInvalid("gradePeriods");
+          events.clearInvalid("gradingTemplates");
+          events.clearInvalid("assessments");
+          refreshDebounced();
+        }
+      });
+    }
 
     try {
       await loadReferenceData();
       await loadAssessments();
+      window.EduTrackModules = window.EduTrackModules || {};
+      window.EduTrackModules.assessments = {
+        refreshLookups: loadReferenceData,
+        refreshList: loadAssessments,
+        refreshAll: async () => {
+          await loadReferenceData();
+          await loadAssessments();
+        },
+      };
     } catch (err) {
       showFeedback(err.message || "Failed to load assessments.", true);
     }

@@ -10,6 +10,7 @@ from apps.services.attendance_service import (
     get_attendance_queryset_for_user,
     summarize_attendance_for_user,
 )
+from apps.services.setup_service import ensure_schedule_term_is_active
 
 
 class AttendanceListCreateAPIView(APIView):
@@ -67,6 +68,7 @@ class AttendanceDetailAPIView(APIView):
         attendance = self.get_object(request, pk)
         if attendance is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        ensure_schedule_term_is_active(attendance.record.schedule)
         attendance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

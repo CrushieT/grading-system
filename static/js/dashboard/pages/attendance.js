@@ -1,5 +1,6 @@
 (() => {
   const REFRESH_STORAGE_KEY = "gd_refresh";
+  const events = window.EduTrackEvents || null;
 
   let accessToken = null;
   let refreshPromise = null;
@@ -585,6 +586,10 @@
       );
       showFeedback("Attendance saved.");
       await loadAttendanceData();
+      if (events) {
+        events.invalidate("attendance");
+        events.emit("attendance:changed");
+      }
     } catch (err) {
       showFeedback(err.message || "Failed to save attendance.", true);
       setSaveButtonState(false);
@@ -669,6 +674,29 @@
     });
 
     setupFilterHandlers();
+    const refreshDebounced = events?.debounce?.(
+      () => refreshAttendancePageData().catch(err => {
+        renderEmptyState(err.message || "Failed to load attendance.");
+        showFeedback(err.message || "Failed to load attendance.", true);
+      }),
+      220
+    );
+    if (events && refreshDebounced) {
+      events.on("schedules:changed", refreshDebounced);
+      events.on("enrollments:changed", refreshDebounced);
+      events.on("students:changed", refreshDebounced);
+      events.on("attendance:changed", refreshDebounced);
+      events.on("dashboard:page-activated", event => {
+        if (event.detail?.page !== "attendance") return;
+        if (events.isInvalid("schedules") || events.isInvalid("enrollments") || events.isInvalid("students") || events.isInvalid("attendance")) {
+          events.clearInvalid("schedules");
+          events.clearInvalid("enrollments");
+          events.clearInvalid("students");
+          events.clearInvalid("attendance");
+          refreshDebounced();
+        }
+      });
+    }
 
     const attendanceNavButtons = document.querySelectorAll('[data-page-target="attendance"]');
     attendanceNavButtons.forEach(button => {
@@ -682,6 +710,10 @@
 
     try {
       await refreshAttendancePageData();
+      window.EduTrackModules = window.EduTrackModules || {};
+      window.EduTrackModules.attendance = {
+        refreshAll: refreshAttendancePageData,
+      };
     } catch (err) {
       renderEmptyState(err.message || "Failed to load attendance.");
       showFeedback(err.message || "Failed to load attendance.", true);

@@ -15,6 +15,7 @@ from apps.services.schedules_service import (
     validate_schedule_section_term_match,
     validate_schedule_subject_owner,
 )
+from apps.services.setup_service import ensure_schedule_term_is_active
 
 
 class PeriodSlotSerializer(serializers.ModelSerializer):
@@ -180,6 +181,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if request is None:
             raise serializers.ValidationError("User context is required.")
+        if instance is not None:
+            ensure_schedule_term_is_active(instance)
 
         teacher = attrs.get("user") or (instance.user if instance else request.user)
         subject = attrs.get("subject") or (instance.subject if instance else None)
@@ -201,6 +204,10 @@ class ScheduleSerializer(serializers.ModelSerializer):
         if school_year_semester is None:
             raise serializers.ValidationError(
                 {"school_year_sem": "Please select a school year semester."}
+            )
+        if not school_year_semester.is_active:
+            raise serializers.ValidationError(
+                {"school_year_sem": "This school year semester is inactive and cannot be modified."}
             )
         if not day:
             raise serializers.ValidationError({"day": "Please select a day."})

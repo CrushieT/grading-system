@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.models import GradingTemplate, GradingTemplateItem
+from apps.models import GradingTemplate, GradingTemplateItem, Record
 from apps.services.grading_service import (
     normalize_template_components,
     replace_template_components,
@@ -145,3 +145,63 @@ class GradingTemplateSerializer(serializers.ModelSerializer):
                 set_default_template(fallback)
 
         return instance
+
+
+class ComputedGradeSerializer(serializers.Serializer):
+    student = serializers.IntegerField(read_only=True)
+    student_name = serializers.CharField(read_only=True)
+    student_id = serializers.CharField(read_only=True)
+    schedule = serializers.IntegerField(read_only=True)
+    schedule_display = serializers.CharField(read_only=True)
+    grade_period = serializers.IntegerField(read_only=True)
+    grade_period_name = serializers.CharField(read_only=True)
+    component_breakdown = serializers.ListField(child=serializers.DictField(), read_only=True)
+    final_grade = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
+    remarks = serializers.CharField(read_only=True)
+    computed_at = serializers.DateTimeField(read_only=True)
+
+
+class RecordSerializer(serializers.ModelSerializer):
+    student_name = serializers.SerializerMethodField()
+    student_id = serializers.CharField(source="student.student_id", read_only=True)
+    schedule_display = serializers.SerializerMethodField()
+    grade_period_name = serializers.CharField(source="grade_period.name", read_only=True)
+    overall_average_grade = serializers.SerializerMethodField()
+    overall_remarks = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Record
+        fields = [
+            "id",
+            "student",
+            "student_name",
+            "student_id",
+            "schedule",
+            "schedule_display",
+            "grade_period",
+            "grade_period_name",
+            "component_breakdown",
+            "final_grade",
+            "remarks",
+            "overall_average_grade",
+            "overall_remarks",
+            "computed_at",
+            "is_locked",
+        ]
+
+    def get_student_name(self, obj):
+        middle = f" {obj.student.middle_name.strip()}" if obj.student.middle_name else ""
+        return f"{obj.student.first_name}{middle} {obj.student.last_name}".strip()
+
+    def get_schedule_display(self, obj):
+        return f"{obj.schedule.subject.name} - {obj.schedule.section.name}"
+
+    def get_overall_average_grade(self, obj):
+        overall_map = self.context.get("overall_map") or {}
+        item = overall_map.get(obj.student_id)
+        return None if item is None else item.get("overall_average_grade")
+
+    def get_overall_remarks(self, obj):
+        overall_map = self.context.get("overall_map") or {}
+        item = overall_map.get(obj.student_id)
+        return None if item is None else item.get("overall_remarks")

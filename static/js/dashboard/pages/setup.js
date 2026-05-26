@@ -1,5 +1,6 @@
 (() => {
   const REFRESH_STORAGE_KEY = "gd_refresh";
+  const events = window.EduTrackEvents || null;
 
   let accessToken = null;
   let refreshPromise = null;
@@ -18,6 +19,13 @@
 
   function getEl(id) {
     return document.getElementById(id);
+  }
+
+  function emitSchoolSetupChanged() {
+    if (!events) return;
+    events.invalidate("schoolYearSemesters");
+    events.invalidate("gradePeriods");
+    events.emit("school-setup:changed");
   }
 
   function hardRedirectLogin() {
@@ -511,6 +519,7 @@
       await sendJson(url, method, payload, "Failed to save school year.");
       closeModal("modal-setup-school-year");
       await reloadSetupLists();
+      emitSchoolSetupChanged();
       showSetupFeedback("School year saved.");
     } catch (err) {
       showModalError("setup-year-error", err.message || "Failed to save school year.");
@@ -545,6 +554,7 @@
       await sendJson(url, method, payload, "Failed to save semester.");
       closeModal("modal-setup-semester");
       await reloadSetupLists();
+      emitSchoolSetupChanged();
       showSetupFeedback("Semester saved.");
     } catch (err) {
       showModalError("setup-semester-error", err.message || "Failed to save semester.");
@@ -587,6 +597,7 @@
       await sendJson(url, method, payload, "Failed to save grade period.");
       closeModal("modal-setup-grade-period");
       await reloadSetupLists();
+      emitSchoolSetupChanged();
       showSetupFeedback("Grade period saved.");
     } catch (err) {
       showModalError("setup-grade-period-error", err.message || "Failed to save grade period.");
@@ -602,6 +613,7 @@
         "Failed to activate school year."
       );
       await reloadSetupLists();
+      emitSchoolSetupChanged();
       showSetupFeedback("School year activated.");
     } catch (err) {
       showSetupFeedback(err.message || "Failed to activate school year.", true);
@@ -621,6 +633,7 @@
         "Failed to activate semester."
       );
       await reloadSetupLists();
+      emitSchoolSetupChanged();
       showSetupFeedback("Semester activated.");
     } catch (err) {
       showSetupFeedback(err.message || "Failed to activate semester.", true);
@@ -636,6 +649,7 @@
       closeModal("modal-setup-confirm-delete");
       state.deleteContext = null;
       await reloadSetupLists();
+      emitSchoolSetupChanged();
       showSetupFeedback(successMessage);
       return;
     }
@@ -700,6 +714,10 @@
 
     try {
       await reloadSetupLists();
+      window.EduTrackModules = window.EduTrackModules || {};
+      window.EduTrackModules.setup = {
+        refreshAll: reloadSetupLists,
+      };
     } catch (err) {
       showSetupFeedback(err.message || "Failed to load setup data.", true);
     }

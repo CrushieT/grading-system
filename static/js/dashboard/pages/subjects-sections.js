@@ -1,5 +1,6 @@
 (() => {
   const REFRESH_STORAGE_KEY = "gd_refresh";
+  const events = window.EduTrackEvents || null;
 
   let accessToken = null;
   let refreshPromise = null;
@@ -16,6 +17,18 @@
 
   function getEl(id) {
     return document.getElementById(id);
+  }
+
+  function emitSubjectsChanged() {
+    if (!events) return;
+    events.invalidate("subjects");
+    events.emit("subjects:changed");
+  }
+
+  function emitSectionsChanged() {
+    if (!events) return;
+    events.invalidate("sections");
+    events.emit("sections:changed");
   }
 
   function getRefreshToken() {
@@ -415,6 +428,7 @@
       await sendJson(url, method, payload, "Failed to save subject.");
       closeSubjectModal();
       await loadSubjectSectionLists();
+      emitSubjectsChanged();
       showFeedback("Subject saved.");
     } catch (err) {
       showModalError("subject-modal-error", err.message || "Failed to save subject.");
@@ -453,6 +467,7 @@
       await sendJson(url, method, payload, "Failed to save section.");
       closeSectionModal();
       await loadSubjectSectionLists();
+      emitSectionsChanged();
       showFeedback("Section saved.");
     } catch (err) {
       showModalError("section-modal-error", err.message || "Failed to save section.");
@@ -466,6 +481,8 @@
     if (response.status === 204) {
       closeDeleteModal();
       await loadSubjectSectionLists();
+      if (String(state.deleteContext?.url || "").includes("/api/subjects/")) emitSubjectsChanged();
+      if (String(state.deleteContext?.url || "").includes("/api/sections/")) emitSectionsChanged();
       showFeedback(state.deleteContext.successMessage);
       return;
     }
@@ -527,6 +544,13 @@
     try {
       await loadSchoolYearSemesters();
       await loadSubjectSectionLists();
+      window.EduTrackModules = window.EduTrackModules || {};
+      window.EduTrackModules.subjectsSections = {
+        refreshAll: async () => {
+          await loadSchoolYearSemesters();
+          await loadSubjectSectionLists();
+        },
+      };
     } catch (err) {
       showFeedback(err.message || "Failed to load subjects and sections.", true);
     }

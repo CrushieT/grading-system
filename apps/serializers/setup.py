@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from apps.models import Period, SchoolYear, SchoolYearSemester, Semester
 from apps.services.setup_service import (
+    deactivate_school_year,
     activate_school_year,
     activate_school_year_semester,
     build_school_year_name,
@@ -99,6 +100,7 @@ class SchoolYearSerializer(serializers.ModelSerializer):
         year_end = validated_data.pop("year_end", None)
         set_active = validated_data.pop("set_active", False)
         active_semester_id = validated_data.pop("active_semester_id", None)
+        set_active_provided = "set_active" in self.initial_data
 
         if year_start is not None and year_end is not None:
             instance.name = build_school_year_name(year_start, year_end)
@@ -109,6 +111,11 @@ class SchoolYearSerializer(serializers.ModelSerializer):
                 user=self.context["request"].user,
                 school_year=instance,
                 preferred_semester_id=active_semester_id,
+            )
+        elif set_active_provided:
+            deactivate_school_year(
+                user=self.context["request"].user,
+                school_year=instance,
             )
 
         return instance
