@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from apps.models import Assessment, AssessmentScore, GradingTemplateItem, Period, Record, Schedule
 from apps.services.setup_service import ensure_schedule_term_is_active
+from apps.services.setup_service import ensure_grade_period_is_active_for_user
 from apps.services.setup_service import get_grade_period_queryset
 
 
@@ -49,6 +50,7 @@ def validate_compute_inputs(user, schedule_id, grade_period_id):
     grade_period = get_grade_period_queryset(user).filter(id=grade_period_id).first()
     if grade_period is None:
         raise serializers.ValidationError({"detail": "Please select a grade period."})
+    ensure_grade_period_is_active_for_user(user, grade_period)
 
     if schedule.grading_template_id is None:
         raise serializers.ValidationError({"detail": "This schedule has no grading template."})
@@ -195,7 +197,7 @@ def compute_overall_grade_map(user, schedule):
     Computes overall weighted grade per student for a schedule across all grade periods.
     If any required period record is missing, ungraded, or marked incomplete, overall is incomplete.
     """
-    periods = list(get_grade_period_queryset(user).filter(is_active=True).order_by("position", "id"))
+    periods = list(get_grade_period_queryset(user).order_by("position", "id"))
     if not periods:
         return {}
 

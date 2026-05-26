@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.serializers.auth import RegisterSerializer, UsernameOrEmailLoginSerializer
+from apps.serializers.auth import RegisterSerializer, UpdateMeSerializer, UsernameOrEmailLoginSerializer
 from apps.services.auth_service import issue_tokens, serialize_user
 
 
@@ -86,3 +86,19 @@ class MeAPIView(APIView):
 
     def get(self, request):
         return Response({"user": serialize_user(request.user)}, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        serializer = UpdateMeSerializer(
+            instance=request.user,
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(
+            {
+                "message": "Account updated successfully.",
+                "user": serialize_user(user),
+            },
+            status=status.HTTP_200_OK,
+        )

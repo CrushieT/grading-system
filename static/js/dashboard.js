@@ -184,6 +184,284 @@ function updateUserUI(user) {
   if (topbarAvatar) topbarAvatar.textContent = initials;
 }
 
+function asArray(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (payload && Array.isArray(payload.results)) return payload.results;
+  if (payload && Array.isArray(payload.data)) return payload.data;
+  return [];
+}
+
+async function fetchListOrEmpty(url) {
+  try {
+    const response = await authFetch(url, { method: "GET" });
+    const data = await safeJson(response);
+    if (!response.ok) return [];
+    return asArray(data);
+  } catch (_err) {
+    return [];
+  }
+}
+
+function renderDashboardStats({ schedules, students, assessments, templates }) {
+  const schedulesEl = document.getElementById("db-stat-schedules");
+  const studentsEl = document.getElementById("db-stat-students");
+  const assessmentsEl = document.getElementById("db-stat-assessments");
+  const templatesEl = document.getElementById("db-stat-templates");
+
+  if (schedulesEl) schedulesEl.textContent = String(schedules.length);
+  if (studentsEl) studentsEl.textContent = String(students.length);
+  if (assessmentsEl) assessmentsEl.textContent = String(assessments.length);
+  if (templatesEl) templatesEl.textContent = String(templates.filter(item => item.is_active).length);
+}
+
+function renderScheduleList(schedules) {
+  const listEl = document.getElementById("db-schedules-list");
+  const badgeEl = document.getElementById("db-schedules-badge");
+  if (!listEl) return;
+
+  if (badgeEl) badgeEl.textContent = `${schedules.length} total`;
+
+  if (!schedules.length) {
+    listEl.innerHTML = '<div class="setup-sub">No schedules yet.</div>';
+    return;
+  }
+
+  const dayLabels = {
+    mon: "Monday",
+    tue: "Tuesday",
+    wed: "Wednesday",
+    thu: "Thursday",
+    fri: "Friday",
+    sat: "Saturday",
+    sun: "Sunday",
+  };
+
+  const rows = schedules.slice(0, 6).map(item => {
+    const periodDisplay = item.period_display || item.period_name || "-";
+    const dayDisplay = dayLabels[String(item.day || "").toLowerCase()] || String(item.day || "-").toUpperCase();
+    const scheduleName = `${item.subject_name || "Subject"} - ${item.section_name || "Section"}`;
+    const scheduleMeta = `${dayDisplay} • ${periodDisplay}`;
+    return `
+      <div class="schedule-row-accent">
+        <span class="schedule-dot dot-blue"></span>
+        <div class="schedule-text">
+          <div class="schedule-name">${scheduleName}</div>
+          <div class="schedule-meta">${scheduleMeta}</div>
+        </div>
+        <span class="badge badge-blue">${item.grading_template_name || "No template"}</span>
+      </div>
+    `;
+  });
+
+  listEl.innerHTML = rows.join("");
+}
+
+function renderAcademicSnapshot({ gradePeriods, templates, schedules, students, assessments }) {
+  const wrap = document.getElementById("db-academic-snapshot");
+  if (!wrap) return;
+
+  const activePeriod = gradePeriods.find(item => item.is_active) || null;
+  const defaultTemplate = templates.find(item => item.is_default && item.is_active) || null;
+  const withTemplate = schedules.filter(item => !!item.grading_template).length;
+  const templateCoverage = schedules.length ? `${Math.round((withTemplate / schedules.length) * 100)}%` : "0%";
+
+  wrap.innerHTML = `
+    <div class="activity-item">
+      <span class="activity-dot dot-green"></span>
+      <div>
+        <div class="activity-text">Current grade period: <strong>${activePeriod?.name || "Not set"}</strong></div>
+        <div class="activity-time">${gradePeriods.filter(item => item.is_active).length} active period(s)</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <span class="activity-dot dot-blue"></span>
+      <div>
+        <div class="activity-text">Default grading template: <strong>${defaultTemplate?.name || "None"}</strong></div>
+        <div class="activity-time">${templates.filter(item => item.is_active).length} active template(s)</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <span class="activity-dot dot-amber"></span>
+      <div>
+        <div class="activity-text">Schedule template coverage: <strong>${templateCoverage}</strong></div>
+        <div class="activity-time">${withTemplate} of ${schedules.length} schedules assigned</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <span class="activity-dot dot-gray"></span>
+      <div>
+        <div class="activity-text">Data totals: <strong>${students.length} students</strong> and <strong>${assessments.length} assessments</strong></div>
+        <div class="activity-time">Live counts from your account</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderNeedsAttention({ records, schedules, templates, activeGradePeriod }) {
+  const wrap = document.getElementById("db-needs-attention");
+  if (!wrap) return;
+
+  const periodId = activeGradePeriod ? Number(activeGradePeriod.id) : 0;
+  const currentRecords = records.filter(item => Number(item.grade_period) === periodId);
+  const incompleteCount = currentRecords.filter(
+    item => String(item.remarks || "").toLowerCase() === "incomplete"
+  ).length;
+  const failedCount = currentRecords.filter(item => Number(item.final_grade || 0) < 75).length;
+  const noTemplateCount = schedules.filter(item => !item.grading_template).length;
+  const inactiveTemplateCount = schedules.filter(item => item.grading_template && !item.grading_template_name).length;
+
+  wrap.innerHTML = `
+    <div class="activity-item">
+      <span class="activity-dot dot-amber"></span>
+      <div>
+        <div class="activity-text">Incomplete records: <strong>${incompleteCount}</strong></div>
+        <div class="activity-time">${activeGradePeriod?.name || "Current"} period</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <span class="activity-dot dot-red"></span>
+      <div>
+        <div class="activity-text">Failed records: <strong>${failedCount}</strong></div>
+        <div class="activity-time">Final grade below 75</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <span class="activity-dot dot-gray"></span>
+      <div>
+        <div class="activity-text">Schedules without template: <strong>${noTemplateCount}</strong></div>
+        <div class="activity-time">${templates.filter(item => item.is_active).length} active template(s) available</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <span class="activity-dot dot-blue"></span>
+      <div>
+        <div class="activity-text">Template display mismatch: <strong>${inactiveTemplateCount}</strong></div>
+        <div class="activity-time">Check schedule-template assignments</div>
+      </div>
+    </div>
+  `;
+}
+
+function getWeekdayCodeToday() {
+  const jsDay = new Date().getDay();
+  const map = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  return map[jsDay] || "mon";
+}
+
+function renderTodayClasses(schedules) {
+  const wrap = document.getElementById("db-today-classes");
+  if (!wrap) return;
+
+  const todayCode = getWeekdayCodeToday();
+  const todayList = schedules
+    .filter(item => String(item.day || "").toLowerCase() === todayCode)
+    .sort((a, b) => String(a.period_time || "").localeCompare(String(b.period_time || "")));
+
+  if (!todayList.length) {
+    wrap.innerHTML = '<div class="setup-sub">No classes scheduled for today.</div>';
+    return;
+  }
+
+  wrap.innerHTML = todayList
+    .slice(0, 8)
+    .map(item => {
+      const label = `${item.subject_name || "Subject"} - ${item.section_name || "Section"}`;
+      return `
+      <div class="schedule-row-accent">
+        <span class="schedule-dot dot-green"></span>
+        <div class="schedule-text">
+          <div class="schedule-name">${label}</div>
+          <div class="schedule-meta">${item.period_display || item.period_name || "-"}</div>
+        </div>
+        <span class="badge badge-gray">${item.day || "-"}</span>
+      </div>`;
+    })
+    .join("");
+}
+
+function renderAssessmentProgress({ schedules, assessments, records, activeGradePeriod }) {
+  const wrap = document.getElementById("db-assessment-progress");
+  if (!wrap) return;
+
+  const periodId = activeGradePeriod ? Number(activeGradePeriod.id) : 0;
+  const activeAssessments = assessments.filter(item => Number(item.grade_period) === periodId);
+  if (!activeAssessments.length) {
+    wrap.innerHTML = '<div class="setup-sub">No assessments yet for the current grade period.</div>';
+    return;
+  }
+
+  const enrollmentBySchedule = {};
+  records.forEach(item => {
+    if (!item.grade_period) {
+      const sid = Number(item.schedule);
+      enrollmentBySchedule[sid] = (enrollmentBySchedule[sid] || 0) + 1;
+    }
+  });
+
+  const grouped = {};
+  activeAssessments.forEach(item => {
+    const sid = Number(item.schedule);
+    if (!grouped[sid]) grouped[sid] = [];
+    grouped[sid].push(item);
+  });
+
+  const rows = Object.keys(grouped)
+    .map(key => {
+      const sid = Number(key);
+      const schedule = schedules.find(item => Number(item.id) === sid);
+      const items = grouped[sid];
+      const total = items.length;
+      const entered = items.reduce((acc, cur) => acc + Number(cur.submitted_count || 0), 0);
+      const enrolled = enrollmentBySchedule[sid] || 0;
+      const denominator = enrolled > 0 ? enrolled * total : 0;
+      const percent = denominator > 0 ? Math.round((entered / denominator) * 100) : 0;
+      return {
+        sid,
+        label: schedule
+          ? `${schedule.subject_name || "Subject"} - ${schedule.section_name || "Section"}`
+          : `Schedule #${sid}`,
+        total,
+        enrolled,
+        entered,
+        percent,
+      };
+    })
+    .sort((a, b) => a.percent - b.percent)
+    .slice(0, 8);
+
+  wrap.innerHTML = rows
+    .map(row => {
+      return `
+      <div class="activity-item">
+        <span class="activity-dot dot-blue"></span>
+        <div>
+          <div class="activity-text">${row.label}</div>
+          <div class="activity-time">${row.total} assessment(s), ${row.entered} score entries, ${row.percent}% completion</div>
+        </div>
+      </div>`;
+    })
+    .join("");
+}
+
+async function loadDashboardOverview() {
+  const [schedules, students, assessments, templates, gradePeriods, records] = await Promise.all([
+    fetchListOrEmpty("/api/schedules/"),
+    fetchListOrEmpty("/api/students/"),
+    fetchListOrEmpty("/api/assessments/"),
+    fetchListOrEmpty("/api/grading-templates/"),
+    fetchListOrEmpty("/api/grade-periods/"),
+    fetchListOrEmpty("/api/records/"),
+  ]);
+  const activeGradePeriod = gradePeriods.find(item => item.is_active) || null;
+
+  renderDashboardStats({ schedules, students, assessments, templates });
+  renderScheduleList(schedules);
+  renderAcademicSnapshot({ gradePeriods, templates, schedules, students, assessments });
+  renderNeedsAttention({ records, schedules, templates, activeGradePeriod });
+  renderTodayClasses(schedules);
+  renderAssessmentProgress({ schedules, assessments, records, activeGradePeriod });
+}
+
 function setActivePage(pageId) {
   document.querySelectorAll(".page").forEach(page => {
     page.classList.toggle("active", page.id === `page-${pageId}`);
@@ -383,6 +661,10 @@ async function guardDashboard() {
   setLoadingState(false);
 }
 
+window.authFetch = authFetch;
+window.safeJson = safeJson;
+window.updateUserUI = updateUserUI;
+
 function setupBackForwardProtection() {
   history.replaceState({ page: "dashboard" }, "", "/dashboard.html");
 
@@ -399,4 +681,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateWeightTotal();
   setupBackForwardProtection();
   await guardDashboard();
+  await loadDashboardOverview();
+
+  if (window.EduTrackEvents?.on) {
+    const reload = () => {
+      loadDashboardOverview();
+    };
+    window.EduTrackEvents.on("schedules:changed", reload);
+    window.EduTrackEvents.on("students:changed", reload);
+    window.EduTrackEvents.on("assessments:changed", reload);
+    window.EduTrackEvents.on("grading-templates:changed", reload);
+    window.EduTrackEvents.on("school-setup:changed", reload);
+    window.EduTrackEvents.on("dashboard:page-activated", event => {
+      if (event?.detail?.page !== "dashboard") return;
+      loadDashboardOverview();
+    });
+  }
 });

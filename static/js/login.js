@@ -337,7 +337,7 @@ function setupLoginSubmission() {
     let valid = true;
 
     if (isEmpty(loginId)) {
-      setError("err-login-email", "Username or email is required.");
+      setError("err-login-email", "Email is required.");
       valid = false;
     } else {
       clearError("err-login-email");
@@ -362,7 +362,7 @@ function setupLoginSubmission() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: loginId,
+          email: loginId,
           password,
         }),
       });
@@ -372,7 +372,7 @@ function setupLoginSubmission() {
         showBanner(
           "login-banner",
           "login-banner-msg",
-          readApiError(data, "Invalid username/email or password.")
+          readApiError(data, "Invalid email or password.")
         );
         return;
       }

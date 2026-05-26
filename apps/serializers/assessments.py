@@ -10,6 +10,7 @@ from apps.services.assessments_service import (
     validate_assessment_title_unique,
 )
 from apps.services.setup_service import get_grade_period_queryset
+from apps.services.setup_service import ensure_grade_period_is_active_for_user
 
 
 class ScheduleGradingComponentSerializer(serializers.Serializer):
@@ -160,6 +161,7 @@ class AssessmentSerializer(serializers.ModelSerializer):
 
         schedule = resolve_schedule_for_user(request.user, schedule_value, require_active=True)
         grade_period = resolve_grade_period_for_user(request.user, grade_period_value)
+        ensure_grade_period_is_active_for_user(request.user, grade_period)
         template = resolve_schedule_template_or_default(request.user, schedule)
         component = resolve_component_for_template(component_value, template)
         validate_assessment_title_unique(
