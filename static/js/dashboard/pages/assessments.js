@@ -945,6 +945,18 @@
         const input = event.target.closest(".score-input");
         if (!input) return;
         input.classList.remove("is-invalid");
+        const maxAllowed = Number(input.getAttribute("max") || "0");
+        const minAllowed = Number(input.getAttribute("min") || "0");
+        const parsedRaw = parseScoreValue(input.value);
+        if (parsedRaw != null && Number.isFinite(parsedRaw)) {
+          if (Number.isFinite(minAllowed) && parsedRaw < minAllowed) {
+            input.value = String(minAllowed);
+          }
+          if (Number.isFinite(maxAllowed) && maxAllowed > 0 && parsedRaw > maxAllowed) {
+            input.value = String(maxAllowed);
+            showModalError("scores-modal-error", `Score cannot be greater than ${formatNumber(maxAllowed)}.`);
+          }
+        }
         const row = input.closest("tr");
         const badge = row ? row.querySelector(".badge") : null;
         const parsed = parseScoreValue(input.value);
