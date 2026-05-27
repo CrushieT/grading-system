@@ -320,14 +320,94 @@ function setupAuthViewHandlers() {
   document.getElementById("goto-login-final").addEventListener("click", showLogin);
 
   const forgotBtn = document.getElementById("forgot-btn");
-  if (forgotBtn) {
-    forgotBtn.addEventListener("click", () => {
+  const forgotModal = document.getElementById("forgot-modal");
+  const forgotModalEmail = document.getElementById("forgot-modal-email");
+  const forgotModalSendBtn = document.getElementById("forgot-modal-send");
+  const forgotModalCancelBtn = document.getElementById("forgot-modal-cancel");
+  const forgotModalCloseBtn = document.getElementById("forgot-modal-close");
+
+  const closeForgotModal = () => {
+    if (!forgotModal) return;
+    forgotModal.hidden = true;
+    setError("err-forgot-modal-email", "");
+  };
+
+  const openForgotModal = () => {
+    if (!forgotModal || !forgotModalEmail) return;
+    hideBanner("login-banner");
+    const loginEmailInput = document.getElementById("login-email");
+    forgotModalEmail.value = String(loginEmailInput?.value || "").trim();
+    setError("err-forgot-modal-email", "");
+    forgotModal.hidden = false;
+    window.setTimeout(() => forgotModalEmail.focus(), 0);
+  };
+
+  const requestPasswordReset = async () => {
+    if (!forgotBtn || !forgotModalEmail || !forgotModalSendBtn) return;
+    const email = forgotModalEmail.value.trim();
+    setError("err-forgot-modal-email", "");
+
+    if (isEmpty(email)) {
+      setError("err-forgot-modal-email", "Email is required.");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError("err-forgot-modal-email", "Enter a valid email address.");
+      return;
+    }
+
+    forgotBtn.disabled = true;
+    forgotModalSendBtn.disabled = true;
+    try {
+      const response = await fetch("/api/auth/password-reset/request/", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+      const payload = await safeJson(response);
+      if (!response.ok) {
+        setError("err-forgot-modal-email", readApiError(payload, "Unable to request password reset."));
+        return;
+      }
+
+      closeForgotModal();
       showBanner(
         "login-banner",
         "login-banner-msg",
-        "Password reset is not connected yet. Please contact your administrator."
+        payload.message
+          || "If an account exists for this email, a password reset link has been sent."
       );
+    } catch (_err) {
+      showBanner("login-banner", "login-banner-msg", "Could not connect. Try again.");
+    } finally {
+      forgotBtn.disabled = false;
+      forgotModalSendBtn.disabled = false;
+    }
+  };
+
+  if (forgotModalCancelBtn) forgotModalCancelBtn.addEventListener("click", closeForgotModal);
+  if (forgotModalCloseBtn) forgotModalCloseBtn.addEventListener("click", closeForgotModal);
+  if (forgotModal) {
+    forgotModal.addEventListener("click", event => {
+      if (event.target === forgotModal) closeForgotModal();
     });
+  }
+  if (forgotModalEmail) {
+    forgotModalEmail.addEventListener("input", () => setError("err-forgot-modal-email", ""));
+    forgotModalEmail.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        requestPasswordReset();
+      }
+    });
+  }
+  if (forgotModalSendBtn) forgotModalSendBtn.addEventListener("click", requestPasswordReset);
+
+  if (forgotBtn) {
+    forgotBtn.addEventListener("click", openForgotModal);
   }
 }
 

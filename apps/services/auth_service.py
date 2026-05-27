@@ -1,7 +1,18 @@
-﻿from decimal import Decimal
+from decimal import Decimal
+import json
+import os
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
 from django.db import transaction
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.models import (
@@ -16,6 +27,17 @@ from apps.services.setup_service import (
     ensure_school_year_semester_link,
     get_or_create_default_semester_for_user,
 )
+
+
+class StablePasswordResetTokenGenerator(PasswordResetTokenGenerator):
+    """Avoid invalidating links on login events while keeping reset-time safety."""
+
+    def _make_hash_value(self, user, timestamp):
+        email = getattr(user, user.get_email_field_name(), "") or ""
+        return f"{user.pk}{user.password}{timestamp}{email}"
+
+
+password_reset_token_generator = StablePasswordResetTokenGenerator()
 
 
 def serialize_user(user):
@@ -34,6 +56,79 @@ def issue_tokens(user):
         "access": str(refresh.access_token),
         "refresh": str(refresh),
     }
+
+
+def send_password_reset_email(user, request):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = password_reset_token_generator.make_token(user)
+    query = urlencode({"uid": uid, "token": token})
+    reset_path = reverse("reset-password")
+
+    base_url = getattr(settings, "PASSWORD_RESET_FRONTEND_BASE_URL", "").strip()
+    if base_url:
+        reset_url = f"{base_url.rstrip('/')}{reset_path}?{query}"
+    else:
+        reset_url = request.build_absolute_uri(f"{reset_path}?{query}")
+
+    subject = "GradeDesk password reset"
+    message = (
+        f"Hi {user.first_name or 'Teacher'},\n\n"
+        "We received a request to reset your GradeDesk password.\n"
+        "Use the link below to set a new password:\n\n"
+        f"{reset_url}\n\n"
+        "If you did not request this, you can ignore this email."
+    )
+
+    brevo_api_key = (
+        os.getenv("BREVO_API_KEY")
+        or getattr(settings, "BREVO_API_KEY", "")
+        or ""
+    ).strip()
+    sender_email = (
+        getattr(settings, "DEFAULT_FROM_EMAIL", "")
+        or getattr(settings, "EMAIL_HOST_USER", "")
+        or "noreply@gradedesk.local"
+    )
+
+    if brevo_api_key:
+        payload = {
+            "sender": {
+                "name": "GradeDesk",
+                "email": sender_email,
+            },
+            "to": [{"email": user.email}],
+            "subject": subject,
+            "textContent": message,
+        }
+        req = Request(
+            url="https://api.brevo.com/v3/smtp/email",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "accept": "application/json",
+                "api-key": brevo_api_key,
+                "content-type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urlopen(req, timeout=20):
+                return
+        except HTTPError as exc:
+            try:
+                details = exc.read().decode("utf-8")
+            except Exception:
+                details = ""
+            raise RuntimeError(f"Brevo API error ({exc.code}): {details}") from exc
+        except URLError as exc:
+            raise RuntimeError(f"Brevo API connection failed: {exc}") from exc
+
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=sender_email,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
 
 
 @transaction.atomic

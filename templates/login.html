@@ -240,6 +240,26 @@
       </div><!-- /form-col -->
     </div><!-- /auth-root -->
 
+    <div class="auth-modal-overlay" id="forgot-modal" hidden>
+      <div class="auth-modal">
+        <div class="auth-modal-header">
+          <div class="auth-modal-title">Reset Password</div>
+          <button type="button" class="close-btn" id="forgot-modal-close">x</button>
+        </div>
+        <div class="auth-modal-body">
+          <div class="form-group">
+            <label for="forgot-modal-email">Registered email</label>
+            <input type="email" id="forgot-modal-email" placeholder="you@school.edu" maxlength="50" inputmode="email" autocomplete="email">
+            <span class="field-error" id="err-forgot-modal-email"></span>
+          </div>
+        </div>
+        <div class="auth-modal-footer">
+          <button type="button" class="btn btn-secondary" id="forgot-modal-cancel">Cancel</button>
+          <button type="button" class="btn btn-primary" id="forgot-modal-send">Send Reset Link</button>
+        </div>
+      </div>
+    </div>
+
     <script src="{% static 'js/login.js' %}" defer></script>
   </body>
 </html>

@@ -307,6 +307,70 @@ input::placeholder { color: var(--text-3); }
   display: none !important;
 }
 
+/* —— FORGOT PASSWORD MODAL —— */
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 25, 23, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 16px;
+}
+
+.auth-modal-overlay[hidden] {
+  display: none !important;
+}
+
+.auth-modal {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 40px rgba(26, 25, 23, 0.16);
+}
+
+.auth-modal-header,
+.auth-modal-footer {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-modal-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.auth-modal-body {
+  padding: 16px;
+}
+
+.auth-modal-footer {
+  border-bottom: 0;
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.close-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: var(--text-2);
+}
+
 /* ── BUTTONS ── */
 .btn {
   display: inline-flex;

@@ -11,6 +11,7 @@ urlpatterns = [
 
     # frontend pages
     path('login.html', views.login_page, name='login'),
+    path('reset-password.html', views.reset_password_page, name='reset-password'),
     path('dashboard.html', views.dashboard_page, name='dashboard'),
 
     # auth api

@@ -9,6 +9,11 @@ def login_page(request):
 
 
 @never_cache
+def reset_password_page(request):
+    return render(request, "reset_password.html")
+
+
+@never_cache
 @login_required(login_url="/login.html")
 def dashboard_page(request):
     request.session.set_expiry(0)
