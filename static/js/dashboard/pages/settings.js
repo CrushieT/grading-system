@@ -6,9 +6,25 @@
     saving: false,
     user: null,
   };
+  const SETTINGS_NAME_MAX_LENGTH = 25;
+  const SETTINGS_EMAIL_MAX_LENGTH = 50;
 
   function getEl(id) {
     return document.getElementById(id);
+  }
+
+  function trimToLength(value, maxLength) {
+    return String(value || "").slice(0, maxLength);
+  }
+
+  function normalizeAccountField(fieldId, value) {
+    if (fieldId === "settings-first-name" || fieldId === "settings-last-name") {
+      return trimToLength(value, SETTINGS_NAME_MAX_LENGTH);
+    }
+    if (fieldId === "settings-email") {
+      return trimToLength(value, SETTINGS_EMAIL_MAX_LENGTH);
+    }
+    return String(value || "");
   }
 
   function readError(payload, fallback) {
@@ -71,9 +87,9 @@
   }
 
   function populateForm(user) {
-    getEl("settings-first-name").value = user?.first_name || "";
-    getEl("settings-last-name").value = user?.last_name || "";
-    getEl("settings-email").value = user?.email || "";
+    getEl("settings-first-name").value = normalizeAccountField("settings-first-name", user?.first_name || "");
+    getEl("settings-last-name").value = normalizeAccountField("settings-last-name", user?.last_name || "");
+    getEl("settings-email").value = normalizeAccountField("settings-email", user?.email || "");
     getEl("settings-current-password").value = "";
     getEl("settings-new-password").value = "";
     getEl("settings-confirm-password").value = "";
@@ -110,10 +126,18 @@
   }
 
   function getPayload() {
+    const firstName = normalizeAccountField("settings-first-name", getEl("settings-first-name")?.value || "").trim();
+    const lastName = normalizeAccountField("settings-last-name", getEl("settings-last-name")?.value || "").trim();
+    const email = normalizeAccountField("settings-email", getEl("settings-email")?.value || "").trim();
+
+    if (getEl("settings-first-name")) getEl("settings-first-name").value = firstName;
+    if (getEl("settings-last-name")) getEl("settings-last-name").value = lastName;
+    if (getEl("settings-email")) getEl("settings-email").value = email;
+
     return {
-      first_name: String(getEl("settings-first-name")?.value || "").trim(),
-      last_name: String(getEl("settings-last-name")?.value || "").trim(),
-      email: String(getEl("settings-email")?.value || "").trim(),
+      first_name: firstName,
+      last_name: lastName,
+      email,
       current_password: String(getEl("settings-current-password")?.value || ""),
       new_password: String(getEl("settings-new-password")?.value || ""),
       confirm_new_password: String(getEl("settings-confirm-password")?.value || ""),
@@ -128,6 +152,21 @@
 
     try {
       const payload = getPayload();
+      if (payload.first_name.length > SETTINGS_NAME_MAX_LENGTH) {
+        setFieldError("first-name", "First name must be at most 25 characters.");
+        showFeedback("Please fix highlighted fields.", true);
+        return;
+      }
+      if (payload.last_name.length > SETTINGS_NAME_MAX_LENGTH) {
+        setFieldError("last-name", "Last name must be at most 25 characters.");
+        showFeedback("Please fix highlighted fields.", true);
+        return;
+      }
+      if (payload.email.length > SETTINGS_EMAIL_MAX_LENGTH) {
+        setFieldError("email", "Email must be at most 50 characters.");
+        showFeedback("Please fix highlighted fields.", true);
+        return;
+      }
       const res = await window.authFetch("/api/auth/me/", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -174,6 +213,8 @@
       const input = getEl(id);
       if (!input) return;
       input.addEventListener("input", () => {
+        const next = normalizeAccountField(id, input.value);
+        if (input.value !== next) input.value = next;
         const fieldId = id.replace("settings-", "");
         setFieldError(fieldId, "");
       });

@@ -26,9 +26,64 @@
     "avatar-red",
     "avatar-gray",
   ];
+  const STUDENT_ID_MAX_LENGTH = 5;
+  const STUDENT_NAME_MAX_LENGTH = 25;
+  const CONTACT_LOCAL_DIGITS = 10;
+  const CONTACT_PREFIX = "+63";
+  const CONTACT_PATTERN = /^\+63\d{10}$/;
 
   function getEl(id) {
     return document.getElementById(id);
+  }
+
+  function trimToLength(value, maxLength) {
+    return String(value || "").slice(0, maxLength);
+  }
+
+  function normalizeStudentId(value) {
+    const digitsOnly = String(value || "").replace(/\D/g, "");
+    return trimToLength(digitsOnly, STUDENT_ID_MAX_LENGTH);
+  }
+
+  function normalizeContactNumber(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return CONTACT_PREFIX;
+
+    let digits = raw.replace(/\D/g, "");
+    if (!digits) return CONTACT_PREFIX;
+
+    if (digits.startsWith("63")) digits = digits.slice(2);
+    if (digits.startsWith("0")) digits = digits.slice(1);
+    digits = digits.slice(0, CONTACT_LOCAL_DIGITS);
+
+    return `${CONTACT_PREFIX}${digits}`;
+  }
+
+  function enforceStudentInputLimits() {
+    const studentIdInput = getEl("student-id-input");
+    if (studentIdInput) {
+      studentIdInput.value = normalizeStudentId(studentIdInput.value);
+    }
+
+    const firstNameInput = getEl("student-first-name-input");
+    if (firstNameInput) {
+      firstNameInput.value = trimToLength(firstNameInput.value, STUDENT_NAME_MAX_LENGTH);
+    }
+
+    const middleNameInput = getEl("student-middle-name-input");
+    if (middleNameInput) {
+      middleNameInput.value = trimToLength(middleNameInput.value, STUDENT_NAME_MAX_LENGTH);
+    }
+
+    const lastNameInput = getEl("student-last-name-input");
+    if (lastNameInput) {
+      lastNameInput.value = trimToLength(lastNameInput.value, STUDENT_NAME_MAX_LENGTH);
+    }
+
+    const contactInput = getEl("student-contact-number-input");
+    if (contactInput) {
+      contactInput.value = normalizeContactNumber(contactInput.value);
+    }
   }
 
   function emitStudentsChanged() {
@@ -388,7 +443,8 @@
         : "");
     const term =
       schedule.school_year_sem_display ||
-      [schedule.school_year_name, schedule.semester_name].filter(Boolean).join(", ");
+      schedule.school_year_name ||
+      "";
 
     const parts = [`${subject} - ${section}`, day];
     if (period) parts.push(period);
@@ -577,7 +633,6 @@
     state.students = await fetchList(buildStudentsUrl(), "Failed to load students.");
     renderStudentTable();
     renderStudentMobile();
-    syncEnrollDropdownOptions();
   }
 
   async function loadEnrollmentsList() {
@@ -587,7 +642,6 @@
     );
     renderStudentTable();
     renderStudentMobile();
-    syncEnrollDropdownOptions();
   }
 
   async function reloadStudentsData() {
@@ -627,107 +681,16 @@
     closeModal("modal-student");
   }
 
-  function resetEnrollModal() {
-    const studentSelect = getEl("enroll-student-input");
-    const scheduleSelect = getEl("enroll-schedule-input");
-    if (studentSelect) studentSelect.value = "";
-    if (scheduleSelect) scheduleSelect.value = "";
-    showModalError("enroll-modal-error", "");
-    syncEnrollDropdownOptions();
-  }
-
-  function closeEnrollModal() {
-    closeModal("modal-enroll");
-  }
-
   function closeDeleteModal() {
     closeModal("modal-student-delete");
     state.deleteContext = null;
     showModalError("student-delete-error", "");
   }
 
-  function syncEnrollSaveButton() {
-    const saveBtn = document.querySelector('[data-action="st-save-enroll"]');
-    if (!saveBtn) return;
-    const student = parseId(getEl("enroll-student-input")?.value);
-    const schedule = parseId(getEl("enroll-schedule-input")?.value);
-    if (!student || !schedule) {
-      saveBtn.disabled = true;
-      return;
-    }
-    const studentObj = getStudentById(student);
-    const scheduleObj = getScheduleById(schedule);
-    const valid =
-      !!studentObj &&
-      !!scheduleObj &&
-      isStudentCompatibleWithSchedule(studentObj, scheduleObj) &&
-      !hasStudentScheduleConflict(studentObj.id, scheduleObj) &&
-      !isStudentAlreadyEnrolled(student, schedule);
-    saveBtn.disabled = !valid;
-  }
-
-  function syncEnrollDropdownOptions(changed = "") {
-    const studentSelect = getEl("enroll-student-input");
-    const scheduleSelect = getEl("enroll-schedule-input");
-    if (!studentSelect || !scheduleSelect) return;
-
-    const currentStudentId = parseId(studentSelect.value);
-    const currentScheduleId = parseId(scheduleSelect.value);
-
-    const studentCandidates = currentScheduleId
-      ? getEligibleStudentsForSchedule(currentScheduleId)
-      : [...state.students];
-
-    const scheduleCandidates = currentStudentId
-      ? getEligibleSchedulesForStudent(currentStudentId)
-      : [...state.schedules];
-
-    const selectedStudentStillValid = currentStudentId
-      ? studentCandidates.some(item => item.id === currentStudentId)
-      : false;
-    const selectedScheduleStillValid = currentScheduleId
-      ? scheduleCandidates.some(item => item.id === currentScheduleId)
-      : false;
-
-    const selectedStudentId = selectedStudentStillValid ? currentStudentId : null;
-    const selectedScheduleId = selectedScheduleStillValid ? currentScheduleId : null;
-
-    let studentEmptyText = "Select student";
-    if (currentScheduleId && !studentCandidates.length) {
-      studentEmptyText = "No eligible students available for this schedule.";
-    }
-
-    let scheduleEmptyText = "Select schedule";
-    if (currentStudentId && !scheduleCandidates.length) {
-      scheduleEmptyText = "No available schedules for this student.";
-    }
-
-    studentSelect.innerHTML = `
-      <option value="">${studentEmptyText}</option>
-      ${studentCandidates
-        .map(item => `<option value="${item.id}">${fullName(item)} (${item.student_id})</option>`)
-        .join("")}
-    `;
-
-    scheduleSelect.innerHTML = `
-      <option value="">${scheduleEmptyText}</option>
-      ${scheduleCandidates
-        .map(item => `<option value="${item.id}">${scheduleOptionLabel(item)}</option>`)
-        .join("")}
-    `;
-
-    studentSelect.value = selectedStudentId ? String(selectedStudentId) : "";
-    scheduleSelect.value = selectedScheduleId ? String(selectedScheduleId) : "";
-
-    if (changed) {
-      showModalError("enroll-modal-error", "");
-    }
-    syncEnrollSaveButton();
-  }
-
   async function openStudentCreate() {
     resetStudentModal();
     await loadReferenceLists();
+    enforceStudentInputLimits();
     openModal("modal-student");
   }
 
@@ -748,15 +711,9 @@
     getEl("student-contact-number-input").value = student.contact_number || "";
     getEl("student-section-input").value = student.section || "";
     setStudentYearLevelFromSection(student.section);
+    enforceStudentInputLimits();
 
     openModal("modal-student");
-  }
-
-  async function openEnrollCreate() {
-    resetEnrollModal();
-    await Promise.all([loadReferenceLists(), reloadStudentsData()]);
-    syncEnrollDropdownOptions();
-    openModal("modal-enroll");
   }
 
   function openDeleteConfirm(message, context) {
@@ -769,32 +726,60 @@
   function getCurrentStudentPayload() {
     const sectionId = parseId(getEl("student-section-input").value);
     const derivedYearLevel = sectionId ? getSectionYearLevel(sectionId) : null;
+    const normalizedContactNumber = normalizeContactNumber(getEl("student-contact-number-input").value);
+    const contactNumberPayload =
+      normalizedContactNumber === CONTACT_PREFIX ? "" : normalizedContactNumber;
 
     return {
-      student_id: String(getEl("student-id-input").value || "").trim(),
-      first_name: String(getEl("student-first-name-input").value || "").trim(),
-      middle_name: String(getEl("student-middle-name-input").value || "").trim(),
-      last_name: String(getEl("student-last-name-input").value || "").trim(),
+      student_id: normalizeStudentId(getEl("student-id-input").value),
+      first_name: trimToLength(String(getEl("student-first-name-input").value || "").trim(), STUDENT_NAME_MAX_LENGTH),
+      middle_name: trimToLength(String(getEl("student-middle-name-input").value || "").trim(), STUDENT_NAME_MAX_LENGTH),
+      last_name: trimToLength(String(getEl("student-last-name-input").value || "").trim(), STUDENT_NAME_MAX_LENGTH),
       gender: String(getEl("student-gender-input").value || "").trim(),
-      contact_number: String(getEl("student-contact-number-input").value || "").trim(),
+      contact_number: contactNumberPayload,
       year_level: derivedYearLevel,
       section: sectionId,
     };
   }
 
   async function saveStudent() {
+    enforceStudentInputLimits();
     const payload = getCurrentStudentPayload();
 
     if (!payload.student_id) {
       showModalError("student-modal-error", "Student ID is required.");
       return;
     }
+    if (!/^\d+$/.test(payload.student_id)) {
+      showModalError("student-modal-error", "Student ID must contain numbers only.");
+      return;
+    }
+    if (payload.student_id.length > STUDENT_ID_MAX_LENGTH) {
+      showModalError("student-modal-error", "Student ID must be at most 5 characters.");
+      return;
+    }
     if (!payload.first_name) {
       showModalError("student-modal-error", "First name is required.");
       return;
     }
+    if (payload.first_name.length > STUDENT_NAME_MAX_LENGTH) {
+      showModalError("student-modal-error", "First name must be at most 25 characters.");
+      return;
+    }
+    if (payload.middle_name.length > STUDENT_NAME_MAX_LENGTH) {
+      showModalError("student-modal-error", "Middle name must be at most 25 characters.");
+      return;
+    }
     if (!payload.last_name) {
       showModalError("student-modal-error", "Last name is required.");
+      return;
+    }
+    if (payload.last_name.length > STUDENT_NAME_MAX_LENGTH) {
+      showModalError("student-modal-error", "Last name must be at most 25 characters.");
+      return;
+    }
+    if (payload.contact_number && !CONTACT_PATTERN.test(payload.contact_number)) {
+      showModalError("student-modal-error", "Contact number must be in +63XXXXXXXXXX format.");
       return;
     }
     if (!payload.section) {
@@ -803,6 +788,10 @@
     }
     if (!payload.year_level || payload.year_level <= 0) {
       showModalError("student-modal-error", "Year level must be greater than 0.");
+      return;
+    }
+    if (Number(payload.year_level) > 12) {
+      showModalError("student-modal-error", "Year level must not exceed 12.");
       return;
     }
 
@@ -828,57 +817,6 @@
       showFeedback("Student saved.");
     } catch (err) {
       showModalError("student-modal-error", err.message || "Failed to save student.");
-    }
-  }
-
-  async function saveEnrollment() {
-    const student = parseId(getEl("enroll-student-input").value);
-    const schedule = parseId(getEl("enroll-schedule-input").value);
-
-    if (!student) {
-      showModalError("enroll-modal-error", "Please select a student.");
-      return;
-    }
-    if (!schedule) {
-      showModalError("enroll-modal-error", "Please select a schedule.");
-      return;
-    }
-
-    const studentObj = getStudentById(student);
-    const scheduleObj = getScheduleById(schedule);
-    if (!studentObj || !scheduleObj) {
-      showModalError("enroll-modal-error", "Please select valid student and schedule.");
-      return;
-    }
-    if (!isStudentCompatibleWithSchedule(studentObj, scheduleObj)) {
-      showModalError("enroll-modal-error", "Student is not compatible with this schedule.");
-      return;
-    }
-    if (hasStudentScheduleConflict(studentObj.id, scheduleObj)) {
-      showModalError(
-        "enroll-modal-error",
-        "This student already has another schedule conflict at this day and time."
-      );
-      return;
-    }
-    if (isStudentAlreadyEnrolled(student, schedule)) {
-      showModalError("enroll-modal-error", "This student is already enrolled in this schedule.");
-      return;
-    }
-
-    try {
-      await sendJson(
-        "/api/student-enrollments/",
-        "POST",
-        { student, schedule, is_active: true },
-        "Failed to enroll student."
-      );
-      closeEnrollModal();
-      await reloadStudentsData();
-      emitEnrollmentsChanged();
-      showFeedback("Student enrolled.");
-    } catch (err) {
-      showModalError("enroll-modal-error", err.message || "Failed to enroll student.");
     }
   }
 
@@ -930,25 +868,50 @@
 
   function setupStudentModalSync() {
     const sectionSelect = getEl("student-section-input");
-    if (!sectionSelect) return;
-    sectionSelect.addEventListener("change", () => {
-      setStudentYearLevelFromSection(sectionSelect.value);
-      showModalError("student-modal-error", "");
-    });
-  }
+    if (sectionSelect) {
+      sectionSelect.addEventListener("change", () => {
+        setStudentYearLevelFromSection(sectionSelect.value);
+        showModalError("student-modal-error", "");
+      });
+    }
 
-  function setupEnrollModalSync() {
-    const studentSelect = getEl("enroll-student-input");
-    const scheduleSelect = getEl("enroll-schedule-input");
-    if (!studentSelect || !scheduleSelect) return;
+    const studentIdInput = getEl("student-id-input");
+    if (studentIdInput) {
+      studentIdInput.addEventListener("input", () => {
+        studentIdInput.value = normalizeStudentId(studentIdInput.value);
+      });
+    }
 
-    studentSelect.addEventListener("change", () => {
-      syncEnrollDropdownOptions("student");
-    });
+    const firstNameInput = getEl("student-first-name-input");
+    if (firstNameInput) {
+      firstNameInput.addEventListener("input", () => {
+        firstNameInput.value = trimToLength(firstNameInput.value, STUDENT_NAME_MAX_LENGTH);
+      });
+    }
 
-    scheduleSelect.addEventListener("change", () => {
-      syncEnrollDropdownOptions("schedule");
-    });
+    const middleNameInput = getEl("student-middle-name-input");
+    if (middleNameInput) {
+      middleNameInput.addEventListener("input", () => {
+        middleNameInput.value = trimToLength(middleNameInput.value, STUDENT_NAME_MAX_LENGTH);
+      });
+    }
+
+    const lastNameInput = getEl("student-last-name-input");
+    if (lastNameInput) {
+      lastNameInput.addEventListener("input", () => {
+        lastNameInput.value = trimToLength(lastNameInput.value, STUDENT_NAME_MAX_LENGTH);
+      });
+    }
+
+    const contactInput = getEl("student-contact-number-input");
+    if (contactInput) {
+      contactInput.addEventListener("input", () => {
+        contactInput.value = normalizeContactNumber(contactInput.value);
+      });
+      contactInput.addEventListener("blur", () => {
+        contactInput.value = normalizeContactNumber(contactInput.value);
+      });
+    }
   }
 
   function handleAction(actionEl) {
@@ -956,12 +919,9 @@
     const id = Number(actionEl.dataset.id || "0");
 
     if (action === "st-open-student-create") openStudentCreate();
-    if (action === "st-open-enroll-create") openEnrollCreate();
     if (action === "st-close-student-modal") closeStudentModal();
-    if (action === "st-close-enroll-modal") closeEnrollModal();
     if (action === "st-close-delete-modal") closeDeleteModal();
     if (action === "st-save-student") saveStudent();
-    if (action === "st-save-enroll") saveEnrollment();
     if (action === "st-confirm-delete") confirmDelete();
 
     if (action === "st-view-student") renderStudentProfile(id);
@@ -993,7 +953,6 @@
 
     setupFilters();
     setupStudentModalSync();
-    setupEnrollModalSync();
     const refreshAllDebounced = events?.debounce?.(
       () => Promise.all([loadReferenceLists(), reloadStudentsData()]).catch(err => showFeedback(err.message || "Failed to refresh students.", true)),
       220

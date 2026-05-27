@@ -27,9 +27,42 @@
     "avatar-red",
     "avatar-gray",
   ];
+  const ASSESSMENT_TITLE_MAX_LENGTH = 25;
+  const ASSESSMENT_DESCRIPTION_MAX_LENGTH = 100;
+  const ASSESSMENT_MAX_SCORE_MAX = 999;
 
   function getEl(id) {
     return document.getElementById(id);
+  }
+
+  function trimToLength(value, maxLength) {
+    return String(value || "").slice(0, maxLength);
+  }
+
+  function normalizeAssessmentMaxScoreInput(value, finalize = false) {
+    const digits = String(value || "").replace(/\D/g, "").slice(0, 3);
+    if (!digits) return "";
+    if (!finalize) return digits;
+    const numeric = Number(digits);
+    if (!Number.isFinite(numeric)) return "";
+    return String(Math.min(ASSESSMENT_MAX_SCORE_MAX, numeric));
+  }
+
+  function enforceAssessmentInputLimits() {
+    const titleInput = getEl("assessment-title-input");
+    if (titleInput) {
+      titleInput.value = trimToLength(titleInput.value, ASSESSMENT_TITLE_MAX_LENGTH);
+    }
+
+    const maxScoreInput = getEl("assessment-max-score-input");
+    if (maxScoreInput) {
+      maxScoreInput.value = normalizeAssessmentMaxScoreInput(maxScoreInput.value);
+    }
+
+    const descriptionInput = getEl("assessment-description-input");
+    if (descriptionInput) {
+      descriptionInput.value = trimToLength(descriptionInput.value, ASSESSMENT_DESCRIPTION_MAX_LENGTH);
+    }
   }
 
   function getRefreshToken() {
@@ -503,6 +536,7 @@
       getEl("assessment-grade-period-input").value = String(state.filters.gradePeriod);
     }
 
+    enforceAssessmentInputLimits();
     openModal("modal-assessment");
   }
 
@@ -520,6 +554,7 @@
     getEl("assessment-max-score-input").value = item.max_score || "";
     getEl("assessment-date-given-input").value = item.date_given || "";
     getEl("assessment-description-input").value = item.description || "";
+    enforceAssessmentInputLimits();
 
     try {
       const components = await loadComponentsForSchedule(Number(item.schedule));
@@ -555,13 +590,19 @@
   }
 
   async function saveAssessment() {
+    enforceAssessmentInputLimits();
     const schedule = Number(getEl("assessment-schedule-input").value || "0");
     const gradePeriod = Number(getEl("assessment-grade-period-input").value || "0");
     const component = Number(getEl("assessment-component-input").value || "0");
-    const title = String(getEl("assessment-title-input").value || "").trim();
-    const maxScore = Number(getEl("assessment-max-score-input").value || "0");
+    const title = trimToLength(String(getEl("assessment-title-input").value || "").trim(), ASSESSMENT_TITLE_MAX_LENGTH);
+    const maxScoreText = normalizeAssessmentMaxScoreInput(getEl("assessment-max-score-input").value, true);
+    getEl("assessment-max-score-input").value = maxScoreText;
+    const maxScore = Number(maxScoreText || "0");
     const dateGiven = String(getEl("assessment-date-given-input").value || "").trim();
-    const description = String(getEl("assessment-description-input").value || "").trim();
+    const description = trimToLength(
+      String(getEl("assessment-description-input").value || "").trim(),
+      ASSESSMENT_DESCRIPTION_MAX_LENGTH
+    );
 
     if (!schedule) {
       showModalError("assessment-modal-error", "Please select a schedule.");
@@ -579,8 +620,16 @@
       showModalError("assessment-modal-error", "Assessment title is required.");
       return;
     }
-    if (!Number.isFinite(maxScore) || maxScore <= 0) {
-      showModalError("assessment-modal-error", "Total score must be greater than 0.");
+    if (title.length > ASSESSMENT_TITLE_MAX_LENGTH) {
+      showModalError("assessment-modal-error", "Assessment title must be at most 25 characters.");
+      return;
+    }
+    if (!Number.isInteger(maxScore) || maxScore <= 0 || maxScore > ASSESSMENT_MAX_SCORE_MAX) {
+      showModalError("assessment-modal-error", "Total score must be a whole number from 1 to 999.");
+      return;
+    }
+    if (description.length > ASSESSMENT_DESCRIPTION_MAX_LENGTH) {
+      showModalError("assessment-modal-error", "Description must be at most 100 characters.");
       return;
     }
     if (!dateGiven) {
@@ -593,7 +642,7 @@
       schedule,
       grade_period: gradePeriod,
       component,
-      max_score: Number(maxScore.toFixed(2)),
+      max_score: maxScore,
       date_given: dateGiven,
       description: description || null,
     };
@@ -936,6 +985,30 @@
         onScheduleChangeInModal().catch(err => {
           showModalError("assessment-modal-error", err.message || "Failed to load components.");
         });
+      });
+    }
+
+    const titleInput = getEl("assessment-title-input");
+    if (titleInput) {
+      titleInput.addEventListener("input", () => {
+        titleInput.value = trimToLength(titleInput.value, ASSESSMENT_TITLE_MAX_LENGTH);
+      });
+    }
+
+    const maxScoreInput = getEl("assessment-max-score-input");
+    if (maxScoreInput) {
+      maxScoreInput.addEventListener("input", () => {
+        maxScoreInput.value = normalizeAssessmentMaxScoreInput(maxScoreInput.value);
+      });
+      maxScoreInput.addEventListener("blur", () => {
+        maxScoreInput.value = normalizeAssessmentMaxScoreInput(maxScoreInput.value, true);
+      });
+    }
+
+    const descriptionInput = getEl("assessment-description-input");
+    if (descriptionInput) {
+      descriptionInput.addEventListener("input", () => {
+        descriptionInput.value = trimToLength(descriptionInput.value, ASSESSMENT_DESCRIPTION_MAX_LENGTH);
       });
     }
 

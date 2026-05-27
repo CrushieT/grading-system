@@ -207,10 +207,10 @@
       head.innerHTML = `
         <th>Student</th>
         <th>Student ID</th>
-        <th>Prelim</th>
-        <th>Midterm</th>
-        <th>Prefinal</th>
-        <th>Final</th>
+        <th>1st Quarter</th>
+        <th>2nd Quarter</th>
+        <th>3rd Quarter</th>
+        <th>4th Quarter</th>
         <th>Overall Avg</th>
         <th>Overall Remarks</th>
       `;
@@ -276,14 +276,14 @@
           <div class="m-card-title">${row.student_name || "-"}</div>
           <span class="badge ${remarkBadgeClass(row.overall_remarks || row.remarks)}">${row.overall_remarks || row.remarks || "-"}</span>
         </div>
-        <div class="m-card-meta">
+          <div class="m-card-meta">
           <div class="m-meta-item"><span class="m-meta-label">Student ID</span><span class="m-meta-value mono">${row.student_id || "-"}</span></div>
           ${state.isWeightedMode
             ? `
-              <div class="m-meta-item"><span class="m-meta-label">Prelim</span><span class="m-meta-value mono">${formatNumber(row.prelim_grade)}</span></div>
-              <div class="m-meta-item"><span class="m-meta-label">Midterm</span><span class="m-meta-value mono">${formatNumber(row.midterm_grade)}</span></div>
-              <div class="m-meta-item"><span class="m-meta-label">Prefinal</span><span class="m-meta-value mono">${formatNumber(row.prefinal_grade)}</span></div>
-              <div class="m-meta-item"><span class="m-meta-label">Final</span><span class="m-meta-value mono">${formatNumber(row.final_grade)}</span></div>
+              <div class="m-meta-item"><span class="m-meta-label">1st Quarter</span><span class="m-meta-value mono">${formatNumber(row.prelim_grade)}</span></div>
+              <div class="m-meta-item"><span class="m-meta-label">2nd Quarter</span><span class="m-meta-value mono">${formatNumber(row.midterm_grade)}</span></div>
+              <div class="m-meta-item"><span class="m-meta-label">3rd Quarter</span><span class="m-meta-value mono">${formatNumber(row.prefinal_grade)}</span></div>
+              <div class="m-meta-item"><span class="m-meta-label">4th Quarter</span><span class="m-meta-value mono">${formatNumber(row.final_grade)}</span></div>
             `
             : (row.component_breakdown || []).map(part => `<div class="m-meta-item"><span class="m-meta-label">${part.component} (${formatNumber(part.weight)}%)</span><span class="m-meta-value mono">${formatNumber(part.raw_percentage)}</span></div>`).join("")
           }

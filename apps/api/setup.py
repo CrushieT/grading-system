@@ -15,6 +15,7 @@ from apps.services.setup_service import (
     ensure_school_year_deletable,
     ensure_school_year_semester_deletable,
     ensure_semester_deletable,
+    ensure_school_year_semesters_for_user,
     get_grade_period_queryset,
 )
 
@@ -23,6 +24,7 @@ class SchoolYearListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        ensure_school_year_semesters_for_user(request.user)
         queryset = SchoolYear.objects.filter(user=request.user).order_by("-id")
         serializer = SchoolYearSerializer(queryset, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -141,6 +143,7 @@ class SchoolYearSemesterListCreateAPIView(APIView):
         ).order_by("-is_active", "school_year__id", "semester__id")
 
     def get(self, request):
+        ensure_school_year_semesters_for_user(request.user)
         queryset = self.get_queryset(request)
         serializer = SchoolYearSemesterSerializer(queryset, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)

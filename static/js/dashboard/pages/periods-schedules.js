@@ -193,6 +193,10 @@
     if (modal) modal.hidden = true;
   }
 
+  function normalizeFieldLength(value, maxLength) {
+    return String(value || "").slice(0, maxLength);
+  }
+
   function formatTime(value) {
     if (!value) return "";
     const raw = String(value);
@@ -207,7 +211,7 @@
   }
 
   function schoolTermLabel(item) {
-    return `${item.school_year_name} - ${item.semester_name}`;
+    return item.school_year_name || "";
   }
 
   function renderPeriods() {
@@ -246,7 +250,7 @@
     if (!state.schedules.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="setup-sub">No schedules yet.</td>
+          <td colspan="6" class="setup-sub">No schedules yet.</td>
         </tr>
       `;
       return;
@@ -258,7 +262,6 @@
           <td><strong>${item.subject_code ? `${item.subject_code} - ` : ""}${item.subject_name}</strong></td>
           <td>${item.section_name}</td>
           <td>${item.school_year_name}</td>
-          <td><span class="badge badge-blue">${item.semester_name}</span></td>
           <td>${item.day}</td>
           <td><span class="schedule-period-chip">${item.period_name} (${item.period_time})</span></td>
           <td class="table-actions">
@@ -295,7 +298,6 @@
           </div>
           <div class="m-card-meta">
             <div class="m-meta-item"><span class="m-meta-label">Year</span><span class="m-meta-value">${item.school_year_name}</span></div>
-            <div class="m-meta-item"><span class="m-meta-label">Sem</span><span class="m-meta-value">${item.semester_name}</span></div>
             <div class="m-meta-item"><span class="m-meta-label">Period</span><span class="m-meta-value">${item.period_name}</span></div>
             <div class="m-meta-item"><span class="m-meta-label">Time</span><span class="m-meta-value mono">${item.period_time}</span></div>
           </div>
@@ -317,8 +319,8 @@
       .map(item => `<option value="${item.id}">${schoolTermLabel(item)}</option>`)
       .join("");
 
-    filter.innerHTML = `<option value="">All School Terms</option>${options}`;
-    input.innerHTML = `<option value="">Select school year / semester</option>${options}`;
+    filter.innerHTML = `<option value="">All School Years</option>${options}`;
+    input.innerHTML = `<option value="">Select school year</option>${options}`;
   }
 
   function renderScheduleModalOptions() {
@@ -565,6 +567,10 @@
       showModalError("period-slot-modal-error", "Period name is required.");
       return;
     }
+    if (name.length > 25) {
+      showModalError("period-slot-modal-error", "Period name must not exceed 25 characters.");
+      return;
+    }
     if (!timeStart) {
       showModalError("period-slot-modal-error", "time_start is required.");
       return;
@@ -617,7 +623,7 @@
       return;
     }
     if (!schoolYearSem) {
-      showModalError("schedule-modal-error", "Please select a school year semester.");
+      showModalError("schedule-modal-error", "Please select a school year.");
       return;
     }
     if (!day) {
@@ -737,6 +743,14 @@
   async function initPeriodsSchedules() {
     const page = getEl("page-schedules");
     if (!page) return;
+
+    const periodNameInput = getEl("period-slot-name-input");
+    if (periodNameInput) {
+      periodNameInput.addEventListener("input", () => {
+        const next = normalizeFieldLength(periodNameInput.value, 25);
+        if (periodNameInput.value !== next) periodNameInput.value = next;
+      });
+    }
 
     document.addEventListener("click", event => {
       const actionEl = event.target.closest("[data-action]");

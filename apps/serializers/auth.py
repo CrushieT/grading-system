@@ -1,8 +1,11 @@
-﻿from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Q
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
 
-from apps.services.auth_service import register_teacher_account
+from apps.services.auth_service import password_reset_token_generator, register_teacher_account
 
 
 class UsernameOrEmailLoginSerializer(serializers.Serializer):
@@ -43,7 +46,6 @@ class RegisterSerializer(serializers.Serializer):
     school_name = serializers.CharField(max_length=200)
     year_start = serializers.IntegerField(min_value=2000, max_value=2100)
     year_end = serializers.IntegerField(min_value=2001, max_value=2101)
-    semester = serializers.ChoiceField(choices=["1st", "2nd", "summer"])
     grading = serializers.ChoiceField(choices=["standard", "exam-heavy", "activity"])
 
     def validate(self, attrs):
@@ -139,3 +141,48 @@ class UpdateMeSerializer(serializers.Serializer):
 
         instance.save()
         return instance
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        return value.strip().lower()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(min_length=8, write_only=True)
+    confirm_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate(self, attrs):
+        uid = attrs.get("uid", "")
+        token = attrs.get("token", "")
+        new_password = attrs.get("new_password", "")
+        confirm_password = attrs.get("confirm_password", "")
+
+        if new_password != confirm_password:
+            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(uid))
+            user = get_user_model().objects.get(pk=user_id)
+        except Exception:
+            raise serializers.ValidationError({"token": "Invalid or expired reset link."})
+
+        token_is_valid = (
+            password_reset_token_generator.check_token(user, token)
+            or default_token_generator.check_token(user, token)
+        )
+        if not token_is_valid:
+            raise serializers.ValidationError({"token": "Invalid or expired reset link."})
+
+        attrs["user"] = user
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.validated_data["user"]
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user

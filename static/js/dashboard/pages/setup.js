@@ -8,14 +8,12 @@
 
   const state = {
     schoolYears: [],
-    semesters: [],
-    schoolYearSemesters: [],
     gradePeriods: [],
     editingSchoolYearId: null,
-    editingSemesterId: null,
     editingGradePeriodId: null,
     deleteContext: null,
   };
+  const GRADE_PERIOD_NAME_MAX_LENGTH = 25;
 
   function getEl(id) {
     return document.getElementById(id);
@@ -191,10 +189,31 @@
     };
   }
 
-  function getActiveSchoolYearId() {
-    const active = state.schoolYears.find(item => item.is_active);
-    if (active) return active.id;
-    return state.schoolYears[0] ? state.schoolYears[0].id : null;
+  function normalizeSchoolYearInput(value) {
+    return String(value || "")
+      .replace(/\D/g, "")
+      .slice(0, 4);
+  }
+
+  function normalizeGradePeriodNameInput(value) {
+    return String(value || "").slice(0, GRADE_PERIOD_NAME_MAX_LENGTH);
+  }
+
+  function normalizeWeightInput(value) {
+    let next = String(value || "").replace(/[^\d.]/g, "");
+    const parts = next.split(".");
+    const whole = (parts.shift() || "").slice(0, 2);
+    const decimal = parts.join("").slice(0, 2);
+    if (!next.includes(".")) return whole;
+    return `${whole || "0"}.${decimal}`;
+  }
+
+  function formatWeightInputValue(value) {
+    const normalized = normalizeWeightInput(value);
+    if (!normalized) return "";
+    const numeric = Number(normalized);
+    if (!Number.isFinite(numeric)) return "";
+    return numeric.toFixed(2);
   }
 
   function renderSchoolYears() {
@@ -226,44 +245,6 @@
               <button type="button" class="icon-btn" data-action="setup-set-year-active" data-id="${item.id}">Set Active</button>
               <button type="button" class="icon-btn" data-action="setup-edit-year" data-id="${item.id}">Edit</button>
               <button type="button" class="icon-btn danger" data-action="setup-delete-year" data-id="${item.id}">Delete</button>
-            </div>
-          </div>
-        `;
-      })
-      .join("");
-  }
-
-  function renderSemesters() {
-    const listEl = getEl("setup-semesters-list");
-    if (!listEl) return;
-
-    if (!state.semesters.length) {
-      listEl.innerHTML = `
-        <div class="setup-item">
-          <div><div class="setup-sub">No semesters yet.</div></div>
-        </div>
-      `;
-      return;
-    }
-
-    listEl.innerHTML = state.semesters
-      .map(item => {
-        const statusClass = item.is_active ? "badge-green" : "badge-gray";
-        const statusText = item.is_active ? "Active" : "Inactive";
-        const subText = item.active_school_year_name
-          ? `Linked to ${item.active_school_year_name}`
-          : "Not active";
-        return `
-          <div class="setup-item">
-            <div>
-              <div class="setup-label">${item.name}</div>
-              <div class="setup-sub">${subText}</div>
-            </div>
-            <div class="setup-actions">
-              <span class="badge ${statusClass} setup-status">${statusText}</span>
-              <button type="button" class="icon-btn" data-action="setup-set-semester-active" data-id="${item.id}">Set Active</button>
-              <button type="button" class="icon-btn" data-action="setup-edit-semester" data-id="${item.id}">Edit</button>
-              <button type="button" class="icon-btn danger" data-action="setup-delete-semester" data-id="${item.id}">Delete</button>
             </div>
           </div>
         `;
@@ -324,29 +305,6 @@
     totalEl.classList.toggle("value-green", runningTotal <= 100);
   }
 
-  function populateSetupSelects() {
-    const yearActiveSemesterSelect = getEl("setup-year-active-semester");
-    const semesterYearSelect = getEl("setup-semester-school-year");
-
-    if (yearActiveSemesterSelect) {
-      yearActiveSemesterSelect.innerHTML = `
-        <option value="">Auto-select first semester</option>
-        ${state.semesters
-          .map(sem => `<option value="${sem.id}">${sem.name}</option>`)
-          .join("")}
-      `;
-    }
-
-    if (semesterYearSelect) {
-      semesterYearSelect.innerHTML = `
-        <option value="">Use active/default school year</option>
-        ${state.schoolYears
-          .map(year => `<option value="${year.id}">${year.name}</option>`)
-          .join("")}
-      `;
-    }
-  }
-
   async function fetchSetupList(url, failureMessage) {
     const response = await authFetch(url, { method: "GET" });
     const payload = await safeJson(response);
@@ -357,22 +315,16 @@
   }
 
   async function reloadSetupLists() {
-    const [schoolYears, semesters, schoolYearSemesters, gradePeriods] = await Promise.all([
+    const [schoolYears, gradePeriods] = await Promise.all([
       fetchSetupList("/api/school-years/", "Failed to load school years."),
-      fetchSetupList("/api/semesters/", "Failed to load semesters."),
-      fetchSetupList("/api/school-year-semesters/", "Failed to load school year semesters."),
       fetchSetupList("/api/grade-periods/", "Failed to load grade periods."),
     ]);
 
     state.schoolYears = schoolYears;
-    state.semesters = semesters;
-    state.schoolYearSemesters = schoolYearSemesters;
     state.gradePeriods = gradePeriods;
 
     renderSchoolYears();
-    renderSemesters();
     renderGradePeriods();
-    populateSetupSelects();
   }
 
   async function sendJson(url, method, payload, fallbackMessage) {
@@ -397,16 +349,6 @@
     getEl("setup-year-start").value = "";
     getEl("setup-year-end").value = "";
     getEl("setup-year-set-active").checked = false;
-    if (getEl("setup-year-active-semester")) getEl("setup-year-active-semester").value = "";
-  }
-
-  function resetSemesterModal() {
-    state.editingSemesterId = null;
-    showModalError("setup-semester-error", "");
-    getEl("setup-semester-modal-title").textContent = "Add Semester";
-    getEl("setup-semester-name").value = "";
-    getEl("setup-semester-set-active").checked = false;
-    if (getEl("setup-semester-school-year")) getEl("setup-semester-school-year").value = "";
   }
 
   function resetGradePeriodModal() {
@@ -443,26 +385,6 @@
     openModal("modal-setup-school-year");
   }
 
-  function openSemesterCreate() {
-    resetSemesterModal();
-    openModal("modal-setup-semester");
-  }
-
-  function openSemesterEdit(id) {
-    resetSemesterModal();
-    const item = state.semesters.find(semester => semester.id === id);
-    if (!item) return;
-
-    state.editingSemesterId = id;
-    getEl("setup-semester-modal-title").textContent = "Edit Semester";
-    getEl("setup-semester-name").value = item.name || "";
-    getEl("setup-semester-set-active").checked = !!item.is_active;
-    if (item.active_school_year_id) {
-      getEl("setup-semester-school-year").value = String(item.active_school_year_id);
-    }
-    openModal("modal-setup-semester");
-  }
-
   function openGradePeriodCreate() {
     resetGradePeriodModal();
     openModal("modal-setup-grade-period");
@@ -477,7 +399,7 @@
     getEl("setup-grade-period-modal-title").textContent = "Edit Grade Period";
     getEl("setup-period-name").value = item.name || "";
     getEl("setup-period-position").value = item.position || "";
-    getEl("setup-period-weight").value = item.weight || "";
+    getEl("setup-period-weight").value = item.weight != null ? Number(item.weight).toFixed(2) : "";
     getEl("setup-period-active").checked = !!item.is_active;
     openModal("modal-setup-grade-period");
   }
@@ -490,13 +412,14 @@
   }
 
   async function saveSchoolYear() {
-    const yearStart = Number(getEl("setup-year-start").value);
-    const yearEnd = Number(getEl("setup-year-end").value);
+    const yearStartRaw = String(getEl("setup-year-start").value || "").trim();
+    const yearEndRaw = String(getEl("setup-year-end").value || "").trim();
+    const yearStart = Number(yearStartRaw);
+    const yearEnd = Number(yearEndRaw);
     const setActive = getEl("setup-year-set-active").checked;
-    const activeSemesterIdValue = getEl("setup-year-active-semester").value;
 
-    if (!yearStart || !yearEnd) {
-      showModalError("setup-year-error", "Year start and year end are required.");
+    if (!/^\d{4}$/.test(yearStartRaw) || !/^\d{4}$/.test(yearEndRaw)) {
+      showModalError("setup-year-error", "Year start and year end must be 4-digit values.");
       return;
     }
     if (yearEnd <= yearStart) {
@@ -509,9 +432,6 @@
       year_end: yearEnd,
       set_active: setActive,
     };
-    if (activeSemesterIdValue) {
-      payload.active_semester_id = Number(activeSemesterIdValue);
-    }
 
     const isEditing = !!state.editingSchoolYearId;
     const url = isEditing
@@ -530,64 +450,36 @@
     }
   }
 
-  async function saveSemester() {
-    const name = String(getEl("setup-semester-name").value || "").trim();
-    const setActive = getEl("setup-semester-set-active").checked;
-    const schoolYearId = getEl("setup-semester-school-year").value;
-
-    if (!name) {
-      showModalError("setup-semester-error", "Semester name is required.");
-      return;
-    }
-
-    const payload = {
-      name,
-      set_active: setActive,
-    };
-    if (schoolYearId) {
-      payload.school_year_id = Number(schoolYearId);
-    }
-
-    const isEditing = !!state.editingSemesterId;
-    const url = isEditing
-      ? `/api/semesters/${state.editingSemesterId}/`
-      : "/api/semesters/";
-    const method = isEditing ? "PATCH" : "POST";
-
-    try {
-      await sendJson(url, method, payload, "Failed to save semester.");
-      closeModal("modal-setup-semester");
-      await reloadSetupLists();
-      emitSchoolSetupChanged();
-      showSetupFeedback("Semester saved.");
-    } catch (err) {
-      showModalError("setup-semester-error", err.message || "Failed to save semester.");
-    }
-  }
-
   async function saveGradePeriod() {
-    const name = String(getEl("setup-period-name").value || "").trim();
+    const nameInput = getEl("setup-period-name");
+    const name = normalizeGradePeriodNameInput(String(nameInput?.value || "").trim());
+    if (nameInput) nameInput.value = name;
     const position = Number(getEl("setup-period-position").value);
-    const weight = Number(getEl("setup-period-weight").value);
+    const weightRaw = String(getEl("setup-period-weight").value || "").trim();
+    const weight = Number(weightRaw);
     const isActive = getEl("setup-period-active").checked;
 
     if (!name) {
       showModalError("setup-grade-period-error", "Grade period name is required.");
       return;
     }
+    if (name.length > GRADE_PERIOD_NAME_MAX_LENGTH) {
+      showModalError("setup-grade-period-error", "Grade period name must be at most 25 characters.");
+      return;
+    }
     if (!position || position < 1 || position > 4) {
       showModalError("setup-grade-period-error", "Order must be between 1 and 4.");
       return;
     }
-    if (Number.isNaN(weight) || weight < 0) {
-      showModalError("setup-grade-period-error", "Weight must be 0 or higher.");
+    if (!/^\d{1,2}(\.\d{1,2})?$/.test(weightRaw)) {
+      showModalError("setup-grade-period-error", "Weight must be in 00.00 format.");
       return;
     }
 
     const payload = {
       name,
       position,
-      weight,
+      weight: Number(weight.toFixed(2)),
       is_active: isActive,
     };
 
@@ -621,26 +513,6 @@
       showSetupFeedback("School year activated.");
     } catch (err) {
       showSetupFeedback(err.message || "Failed to activate school year.", true);
-    }
-  }
-
-  async function quickSetSemesterActive(id) {
-    const activeSchoolYearId = getActiveSchoolYearId();
-    const payload = { set_active: true };
-    if (activeSchoolYearId) payload.school_year_id = activeSchoolYearId;
-
-    try {
-      await sendJson(
-        `/api/semesters/${id}/`,
-        "PATCH",
-        payload,
-        "Failed to activate semester."
-      );
-      await reloadSetupLists();
-      emitSchoolSetupChanged();
-      showSetupFeedback("Semester activated.");
-    } catch (err) {
-      showSetupFeedback(err.message || "Failed to activate semester.", true);
     }
   }
 
@@ -686,27 +558,18 @@
     const id = Number(actionEl.dataset.id || "0");
 
     if (action === "setup-open-year-create") openSchoolYearCreate();
-    if (action === "setup-open-semester-create") openSemesterCreate();
     if (action === "setup-open-period-create") openGradePeriodCreate();
 
     if (action === "setup-edit-year") openSchoolYearEdit(id);
-    if (action === "setup-edit-semester") openSemesterEdit(id);
     if (action === "setup-edit-period") openGradePeriodEdit(id);
 
     if (action === "setup-set-year-active") quickSetSchoolYearActive(id);
-    if (action === "setup-set-semester-active") quickSetSemesterActive(id);
     if (action === "setup-set-period-active") quickSetGradePeriodActive(id);
 
     if (action === "setup-delete-year") {
       openDeleteConfirm("Delete this school year?", {
         url: `/api/school-years/${id}/`,
         successMessage: "School year deleted.",
-      });
-    }
-    if (action === "setup-delete-semester") {
-      openDeleteConfirm("Delete this semester?", {
-        url: `/api/semesters/${id}/`,
-        successMessage: "Semester deleted.",
       });
     }
     if (action === "setup-delete-period") {
@@ -717,7 +580,6 @@
     }
 
     if (action === "setup-save-school-year") saveSchoolYear();
-    if (action === "setup-save-semester") saveSemester();
     if (action === "setup-save-grade-period") saveGradePeriod();
     if (action === "setup-confirm-delete") confirmDelete();
   }
@@ -725,6 +587,35 @@
   async function initSetupPage() {
     const page = getEl("page-setup");
     if (!page) return;
+
+    ["setup-year-start", "setup-year-end"].forEach(inputId => {
+      const el = getEl(inputId);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        const next = normalizeSchoolYearInput(el.value);
+        if (el.value !== next) el.value = next;
+      });
+    });
+
+    const weightInput = getEl("setup-period-weight");
+    if (weightInput) {
+      weightInput.addEventListener("input", () => {
+        const next = normalizeWeightInput(weightInput.value);
+        if (weightInput.value !== next) weightInput.value = next;
+      });
+      weightInput.addEventListener("blur", () => {
+        const next = formatWeightInputValue(weightInput.value);
+        if (weightInput.value !== next) weightInput.value = next;
+      });
+    }
+
+    const periodNameInput = getEl("setup-period-name");
+    if (periodNameInput) {
+      periodNameInput.addEventListener("input", () => {
+        const next = normalizeGradePeriodNameInput(periodNameInput.value);
+        if (periodNameInput.value !== next) periodNameInput.value = next;
+      });
+    }
 
     document.addEventListener("click", event => {
       const actionEl = event.target.closest("[data-action]");

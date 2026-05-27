@@ -89,7 +89,7 @@ def validate_schedule_section_owner(user, section):
 
 def validate_schedule_school_year_sem_owner(user, school_year_semester):
     if school_year_semester.school_year.user_id != user.id:
-        raise serializers.ValidationError({"school_year_sem": "Invalid school year semester selected."})
+        raise serializers.ValidationError({"school_year_sem": "Invalid school term selected."})
 
 
 def validate_schedule_period_owner(user, period):
@@ -127,7 +127,7 @@ def validate_schedule_grading_template_owner(user, grading_template):
 def validate_schedule_section_term_match(section, school_year_semester):
     if section.school_year_sem_id != school_year_semester.id:
         raise serializers.ValidationError(
-            {"school_year_sem": "Selected section does not belong to this school year semester."}
+            {"school_year_sem": "Selected section does not belong to this school term."}
         )
 
 

@@ -1,4 +1,8 @@
-﻿from django.contrib.auth import login as django_login
+import logging
+
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth import login as django_login
 from django.contrib.auth import logout as django_logout
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -6,8 +10,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.serializers.auth import RegisterSerializer, UpdateMeSerializer, UsernameOrEmailLoginSerializer
-from apps.services.auth_service import issue_tokens, serialize_user
+from apps.serializers.auth import (
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
+    RegisterSerializer,
+    UpdateMeSerializer,
+    UsernameOrEmailLoginSerializer,
+)
+from apps.services.auth_service import issue_tokens, send_password_reset_email, serialize_user
+
+logger = logging.getLogger(__name__)
 
 
 class LoginAPIView(APIView):
@@ -100,5 +112,49 @@ class MeAPIView(APIView):
                 "message": "Account updated successfully.",
                 "user": serialize_user(user),
             },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetRequestAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        user = get_user_model().objects.filter(email__iexact=email, is_active=True).first()
+        if user:
+            try:
+                send_password_reset_email(user, request)
+            except Exception as exc:
+                # Keep response generic for security, but log for troubleshooting.
+                logger.exception("Password reset email send failed for user_id=%s email=%s", user.id, user.email)
+                if settings.DEBUG:
+                    return Response(
+                        {"message": f"Password reset email send failed: {exc}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+
+        return Response(
+            {
+                "message": (
+                    "If an account exists for this email, a password reset link has been sent."
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetConfirmAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"message": "Password has been reset successfully."},
             status=status.HTTP_200_OK,
         )
