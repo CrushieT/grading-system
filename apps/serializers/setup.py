@@ -9,6 +9,7 @@ from apps.services.setup_service import (
     activate_school_year,
     activate_school_year_semester,
     build_school_year_name,
+    ensure_school_year_semester_link,
     get_grade_period_queryset,
     get_default_school_year_for_user,
     get_school_year_is_active,
@@ -33,7 +34,6 @@ class SchoolYearSerializer(serializers.ModelSerializer):
         write_only=True,
     )
     set_active = serializers.BooleanField(required=False, default=False, write_only=True)
-    active_semester_id = serializers.IntegerField(required=False, write_only=True, min_value=1)
     is_active = serializers.SerializerMethodField()
 
     class Meta:
@@ -45,7 +45,6 @@ class SchoolYearSerializer(serializers.ModelSerializer):
             "year_end",
             "is_active",
             "set_active",
-            "active_semester_id",
         ]
         read_only_fields = ["id", "name", "is_active"]
 
@@ -81,19 +80,16 @@ class SchoolYearSerializer(serializers.ModelSerializer):
         year_start = validated_data.pop("year_start")
         year_end = validated_data.pop("year_end")
         set_active = validated_data.pop("set_active", False)
-        active_semester_id = validated_data.pop("active_semester_id", None)
 
         school_year = SchoolYear.objects.create(
             user=user,
             name=build_school_year_name(year_start, year_end),
         )
-
-        if set_active:
-            activate_school_year(
-                user=user,
-                school_year=school_year,
-                preferred_semester_id=active_semester_id,
-            )
+        ensure_school_year_semester_link(
+            user=user,
+            school_year=school_year,
+            is_active=set_active,
+        )
 
         return school_year
 
@@ -101,7 +97,6 @@ class SchoolYearSerializer(serializers.ModelSerializer):
         year_start = validated_data.pop("year_start", None)
         year_end = validated_data.pop("year_end", None)
         set_active = validated_data.pop("set_active", False)
-        active_semester_id = validated_data.pop("active_semester_id", None)
         set_active_provided = "set_active" in self.initial_data
 
         if year_start is not None and year_end is not None:
@@ -109,10 +104,10 @@ class SchoolYearSerializer(serializers.ModelSerializer):
             instance.save(update_fields=["name"])
 
         if set_active:
-            activate_school_year(
+            ensure_school_year_semester_link(
                 user=self.context["request"].user,
                 school_year=instance,
-                preferred_semester_id=active_semester_id,
+                is_active=True,
             )
         elif set_active_provided:
             deactivate_school_year(

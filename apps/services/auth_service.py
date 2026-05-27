@@ -9,11 +9,13 @@ from apps.models import (
     GradingTemplate,
     GradingTemplateItem,
     SchoolYear,
-    SchoolYearSemester,
-    Semester,
     Subject,
 )
-from apps.services.setup_service import ensure_default_periods_for_user
+from apps.services.setup_service import (
+    ensure_default_periods_for_user,
+    ensure_school_year_semester_link,
+    get_or_create_default_semester_for_user,
+)
 
 
 def serialize_user(user):
@@ -43,7 +45,6 @@ def register_teacher_account(validated_data):
     school_name = validated_data["school_name"].strip()
     year_start = validated_data["year_start"]
     year_end = validated_data["year_end"]
-    semester_key = validated_data["semester"]
     grading_key = validated_data["grading"]
 
     user_model = get_user_model()
@@ -58,24 +59,24 @@ def register_teacher_account(validated_data):
 
     school_year = SchoolYear.objects.create(user=user, name=f"{year_start}-{year_end}")
 
-    semester_name_map = {
-        "1st": "1st Semester",
-        "2nd": "2nd Semester",
-        "summer": "Summer",
-    }
-    semester = Semester.objects.create(user=user, name=semester_name_map[semester_key])
-
-    school_year_semester = SchoolYearSemester.objects.create(
+    semester = get_or_create_default_semester_for_user(user)
+    school_year_semester = ensure_school_year_semester_link(
+        user=user,
         school_year=school_year,
-        semester=semester,
         is_active=True,
     )
+
+    suffix = " - General"
+    school_label = school_name.strip()
+    max_school_len = 100 - len(suffix)
+    if len(school_label) > max_school_len:
+        school_label = school_label[:max_school_len].rstrip()
 
     default_subject = Subject.objects.create(
         user=user,
         code="GEN-101",
-        name=f"{school_name} - General",
-        units=3,
+        name=f"{school_label}{suffix}",
+        units=1,
     )
 
     grading_profiles = {

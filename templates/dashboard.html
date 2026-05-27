@@ -146,7 +146,7 @@
           <div class="page-header">
             <div>
               <div class="page-title" id="dashboard-greeting">Welcome back, Teacher</div>
-              <div class="page-sub">Summary of your current semester.</div>
+              <div class="page-sub">Summary of your current school year.</div>
             </div>
           </div>
 
@@ -238,7 +238,7 @@
           <div class="page-header">
             <div>
               <div class="page-title">School Setup</div>
-              <div class="page-sub">School years, semesters, and grading periods.</div>
+              <div class="page-sub">School years and grading periods.</div>
             </div>
           </div>
 
@@ -253,18 +253,6 @@
               <div id="setup-school-years-list">
                 <div class="setup-item">
                   <div><div class="setup-sub">Loading school years...</div></div>
-                </div>
-              </div>
-            </article>
-
-            <article class="card">
-              <div class="card-header">
-                <span class="card-title">Semesters</span>
-                <button type="button" class="btn btn-primary btn-xs" data-action="setup-open-semester-create">+ Add</button>
-              </div>
-              <div id="setup-semesters-list">
-                <div class="setup-item">
-                  <div><div class="setup-sub">Loading semesters...</div></div>
                 </div>
               </div>
             </article>
@@ -301,9 +289,9 @@
               <article class="card">
                 <div class="card-body">
                   <div class="form-grid single-col">
-                    <div class="form-group"><label>First Name</label><input type="text" id="settings-first-name" autocomplete="given-name"><div class="setup-modal-error" id="settings-first-name-error" hidden></div></div>
-                    <div class="form-group"><label>Last Name</label><input type="text" id="settings-last-name" autocomplete="family-name"><div class="setup-modal-error" id="settings-last-name-error" hidden></div></div>
-                    <div class="form-group"><label>Email</label><input type="email" id="settings-email" autocomplete="email"><div class="setup-modal-error" id="settings-email-error" hidden></div></div>
+                    <div class="form-group"><label>First Name</label><input type="text" id="settings-first-name" maxlength="25" autocomplete="given-name"><div class="setup-modal-error" id="settings-first-name-error" hidden></div></div>
+                    <div class="form-group"><label>Last Name</label><input type="text" id="settings-last-name" maxlength="25" autocomplete="family-name"><div class="setup-modal-error" id="settings-last-name-error" hidden></div></div>
+                    <div class="form-group"><label>Email</label><input type="email" id="settings-email" maxlength="50" autocomplete="email"><div class="setup-modal-error" id="settings-email-error" hidden></div></div>
                     <div class="form-group"><label>Current Password</label><input type="password" id="settings-current-password" autocomplete="current-password" placeholder="Enter only if changing password"><div class="setup-modal-error" id="settings-current-password-error" hidden></div></div>
                     <div class="form-group"><label>New Password</label><input type="password" id="settings-new-password" autocomplete="new-password" placeholder="Min. 8 characters"><div class="setup-modal-error" id="settings-new-password-error" hidden></div></div>
                     <div class="form-group"><label>Confirm New Password</label><input type="password" id="settings-confirm-password" autocomplete="new-password" placeholder="Repeat new password"><div class="setup-modal-error" id="settings-confirm-password-error" hidden></div></div>
@@ -351,7 +339,7 @@
             <div class="form-group full"><label>Subject Name</label><input type="text" placeholder="e.g. Mathematics 10"></div>
             <div class="form-group"><label>Section</label><input type="text" placeholder="e.g. Section A"></div>
             <div class="form-group"><label>School Year</label><select><option>2024-2025</option><option>2023-2024</option></select></div>
-            <div class="form-group full"><label>Semester</label><select><option>1st Semester</option><option>2nd Semester</option></select></div>
+            <div class="form-group full"><label>School Year</label><select><option>Full School Year</option></select></div>
             <div class="form-group"><label>Grading Template</label><select><option>Standard (Q30/A40/E30)</option><option>Exam-Heavy</option><option>Activity-Based</option></select></div>
             <div class="form-group"><label>Room / Notes</label><input type="text" placeholder="Optional"></div>
           </div>
@@ -368,40 +356,20 @@
         </div>
         <div class="modal-body">
           <div class="form-grid">
-            <div class="form-group full"><label>Student ID</label><input type="text" id="student-id-input" placeholder="e.g. 2024-0005"></div>
-            <div class="form-group"><label>First Name</label><input type="text" id="student-first-name-input" placeholder="First name"></div>
-            <div class="form-group"><label>Middle Name</label><input type="text" id="student-middle-name-input" placeholder="Optional"></div>
-            <div class="form-group"><label>Last Name</label><input type="text" id="student-last-name-input" placeholder="Last name"></div>
+            <div class="form-group full"><label>Student ID</label><input type="text" id="student-id-input" maxlength="5" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 10001"></div>
+            <div class="form-group"><label>First Name</label><input type="text" id="student-first-name-input" maxlength="25" placeholder="First name"></div>
+            <div class="form-group"><label>Middle Name</label><input type="text" id="student-middle-name-input" maxlength="25" placeholder="Optional"></div>
+            <div class="form-group"><label>Last Name</label><input type="text" id="student-last-name-input" maxlength="25" placeholder="Last name"></div>
             <div class="form-group"><label>Gender</label><select id="student-gender-input"><option value="">Select gender (optional)</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
-            <div class="form-group"><label>Year Level</label><input type="number" id="student-year-level-input" min="1" step="1" placeholder="Auto from section" readonly></div>
+            <div class="form-group"><label>Year Level</label><input type="number" id="student-year-level-input" min="1" max="12" step="1" placeholder="Auto from section" readonly></div>
             <div class="form-group"><label>Section</label><select id="student-section-input"><option value="">Select section</option></select></div>
-            <div class="form-group full"><label>Contact Number</label><input type="text" id="student-contact-number-input" placeholder="Optional"></div>
+            <div class="form-group full"><label>Contact Number</label><input type="tel" id="student-contact-number-input" maxlength="13" inputmode="numeric" placeholder="+639XXXXXXXXX (Optional)"></div>
           </div>
           <div class="setup-modal-error" id="student-modal-error" hidden></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-action="st-close-student-modal">Cancel</button>
           <button type="button" class="btn btn-primary" data-action="st-save-student">Save</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-overlay" id="modal-enroll" hidden>
-      <div class="modal">
-        <div class="modal-header">
-          <div class="modal-title">Enroll Student</div>
-          <button type="button" class="close-btn" data-action="st-close-enroll-modal">x</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-grid">
-            <div class="form-group full"><label>Select Student</label><select id="enroll-student-input"><option value="">Select student</option></select></div>
-            <div class="form-group full"><label>Select Schedule</label><select id="enroll-schedule-input"><option value="">Select schedule</option></select></div>
-          </div>
-          <div class="setup-modal-error" id="enroll-modal-error" hidden></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-action="st-close-enroll-modal">Cancel</button>
-          <button type="button" class="btn btn-primary" data-action="st-save-enroll">Enroll</button>
         </div>
       </div>
     </div>
@@ -416,7 +384,7 @@
           <div class="form-grid">
             <div class="form-group full">
               <label>Assessment Title</label>
-              <input type="text" id="assessment-title-input" placeholder="e.g. Quiz 1, Midterm Exam">
+              <input type="text" id="assessment-title-input" maxlength="25" placeholder="e.g. Quiz 1, Quarter 1 Exam">
             </div>
             <div class="form-group">
               <label>Schedule</label>
@@ -438,7 +406,7 @@
             </div>
             <div class="form-group">
               <label>Total Score / Max Score</label>
-              <input type="number" id="assessment-max-score-input" min="1" step="0.01" placeholder="100">
+              <input type="number" id="assessment-max-score-input" min="1" max="999" step="1" inputmode="numeric" placeholder="100">
             </div>
             <div class="form-group">
               <label>Date Given</label>
@@ -446,7 +414,7 @@
             </div>
             <div class="form-group full">
               <label>Description (optional)</label>
-              <textarea id="assessment-description-input" rows="3" placeholder="Optional notes"></textarea>
+              <textarea id="assessment-description-input" rows="3" maxlength="100" placeholder="Optional notes"></textarea>
             </div>
           </div>
           <div class="setup-modal-error" id="assessment-modal-error" hidden></div>
@@ -543,11 +511,11 @@
           <div class="form-grid">
             <div class="form-group full">
               <label>Template Name</label>
-              <input type="text" id="grading-template-name-input" placeholder="e.g. Standard Template">
+              <input type="text" id="grading-template-name-input" maxlength="25" placeholder="e.g. Standard Template">
             </div>
             <div class="form-group full">
               <label>Description (optional)</label>
-              <input type="text" id="grading-template-description-input" placeholder="Optional notes">
+              <input type="text" id="grading-template-description-input" maxlength="50" placeholder="Optional notes">
             </div>
           </div>
           <div class="section-label">Components &amp; Weights</div>
@@ -593,17 +561,11 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Year Start</label>
-              <input type="number" id="setup-year-start" min="2000" max="2100" placeholder="2024">
+              <input type="text" id="setup-year-start" placeholder="2024" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off">
             </div>
             <div class="form-group">
               <label>Year End</label>
-              <input type="number" id="setup-year-end" min="2001" max="2101" placeholder="2025">
-            </div>
-            <div class="form-group full">
-              <label>Active Semester (optional)</label>
-              <select id="setup-year-active-semester">
-                <option value="">Auto-select first semester</option>
-              </select>
+              <input type="text" id="setup-year-end" placeholder="2025" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off">
             </div>
             <label class="setup-check full">
               <input type="checkbox" id="setup-year-set-active">
@@ -619,38 +581,6 @@
       </div>
     </div>
 
-    <div class="modal-overlay" id="modal-setup-semester" hidden>
-      <div class="modal">
-        <div class="modal-header">
-          <div class="modal-title" id="setup-semester-modal-title">Add Semester</div>
-          <button type="button" class="close-btn" data-action="close-modal" data-modal-target="modal-setup-semester">x</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-grid">
-            <div class="form-group full">
-              <label>Semester Name</label>
-              <input type="text" id="setup-semester-name" placeholder="e.g. 1st Semester">
-            </div>
-            <div class="form-group full">
-              <label>School Year (for activation)</label>
-              <select id="setup-semester-school-year">
-                <option value="">Use active/default school year</option>
-              </select>
-            </div>
-            <label class="setup-check full">
-              <input type="checkbox" id="setup-semester-set-active">
-              <span>Set as active semester</span>
-            </label>
-          </div>
-          <div class="setup-modal-error" id="setup-semester-error" hidden></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-action="close-modal" data-modal-target="modal-setup-semester">Cancel</button>
-          <button type="button" class="btn btn-primary" id="setup-save-semester" data-action="setup-save-semester">Save</button>
-        </div>
-      </div>
-    </div>
-
     <div class="modal-overlay" id="modal-setup-grade-period" hidden>
       <div class="modal">
         <div class="modal-header">
@@ -661,7 +591,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Name</label>
-              <input type="text" id="setup-period-name" placeholder="e.g. Prelim">
+              <input type="text" id="setup-period-name" maxlength="25" placeholder="e.g. 1st Quarter">
             </div>
             <div class="form-group">
               <label>Order</label>
@@ -675,7 +605,7 @@
             </div>
             <div class="form-group">
               <label>Weight (%)</label>
-              <input type="number" id="setup-period-weight" min="0" max="100" step="0.01" placeholder="25">
+              <input type="text" id="setup-period-weight" placeholder="25.00" inputmode="decimal" pattern="[0-9]{1,2}([.][0-9]{0,2})?" maxlength="5" autocomplete="off">
             </div>
             <label class="setup-check">
               <input type="checkbox" id="setup-period-active" checked>

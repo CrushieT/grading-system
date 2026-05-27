@@ -13,6 +13,9 @@ const regStep3 = document.getElementById("reg-step-3");
 
 const loginSubmit = document.getElementById("login-submit");
 const regNext2 = document.getElementById("reg-next-2");
+const REG_NAME_MAX_LENGTH = 25;
+const REG_EMAIL_MAX_LENGTH = 50;
+const REG_SCHOOL_MAX_LENGTH = 50;
 
 function setAccessToken(access) {
   accessToken = access || null;
@@ -154,12 +157,14 @@ function showLogin() {
   viewLogin.hidden = false;
   viewRegister.hidden = true;
   document.title = "GradeDesk - Sign In";
+  resetAuthBanners();
 }
 
 function showRegister() {
   viewLogin.hidden = true;
   viewRegister.hidden = false;
   document.title = "GradeDesk - Create Account";
+  resetAuthBanners();
   goToStep(1);
 }
 
@@ -168,6 +173,7 @@ function goToStep(n) {
   regStep2.hidden = n !== 2;
   regStep3.hidden = n !== 3;
   regFooter.hidden = n === 3;
+  if (n === 1) hideBanner("reg-banner");
   updateStepDots(n);
 }
 
@@ -216,6 +222,11 @@ function showBanner(id, msgId, msg) {
   banner.hidden = false;
 }
 
+function resetAuthBanners() {
+  hideBanner("login-banner");
+  hideBanner("reg-banner");
+}
+
 function setButtonLoading(btn, loading) {
   const label = btn.querySelector(".btn-label");
   const spinner = btn.querySelector(".btn-spinner");
@@ -240,6 +251,16 @@ function isValidName(value) {
   return /^[A-Za-z][A-Za-z\s'.-]*$/.test(String(value || "").trim());
 }
 
+function trimToLength(value, maxLength) {
+  return String(value || "").slice(0, maxLength);
+}
+
+function normalizeSchoolYearInput(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 4);
+}
+
 function clearRegisterErrors() {
   [
     "err-reg-fname",
@@ -250,7 +271,6 @@ function clearRegisterErrors() {
     "err-reg-school",
     "err-reg-year-start",
     "err-reg-year-end",
-    "err-reg-sem",
   ].forEach(clearError);
 }
 
@@ -265,7 +285,6 @@ function mapRegisterApiErrors(payload) {
     school_name: "err-reg-school",
     year_start: "err-reg-year-start",
     year_end: "err-reg-year-end",
-    semester: "err-reg-sem",
   };
   Object.entries(map).forEach(([key, errId]) => {
     const value = payload[key];
@@ -314,9 +333,15 @@ function setupAuthViewHandlers() {
 
 function setupStepOneValidation() {
   document.getElementById("reg-next-1").addEventListener("click", () => {
-    const fname = document.getElementById("reg-fname").value;
-    const lname = document.getElementById("reg-lname").value;
-    const email = document.getElementById("reg-email").value;
+    const fnameInput = document.getElementById("reg-fname");
+    const lnameInput = document.getElementById("reg-lname");
+    const emailInput = document.getElementById("reg-email");
+    const fname = trimToLength(fnameInput.value, REG_NAME_MAX_LENGTH);
+    const lname = trimToLength(lnameInput.value, REG_NAME_MAX_LENGTH);
+    const email = trimToLength(emailInput.value, REG_EMAIL_MAX_LENGTH).trim();
+    fnameInput.value = fname;
+    lnameInput.value = lname;
+    emailInput.value = email;
     const password = document.getElementById("reg-password").value;
     const confirm = document.getElementById("reg-confirm").value;
 
@@ -325,8 +350,8 @@ function setupStepOneValidation() {
     if (isEmpty(fname)) {
       setError("err-reg-fname", "Required.");
       valid = false;
-    } else if (fname.length > 150) {
-      setError("err-reg-fname", "Must not exceed 150 characters.");
+    } else if (fname.length > REG_NAME_MAX_LENGTH) {
+      setError("err-reg-fname", "Must not exceed 25 characters.");
       valid = false;
     } else if (!isValidName(fname)) {
       setError("err-reg-fname", "Use letters and basic name symbols only.");
@@ -338,8 +363,8 @@ function setupStepOneValidation() {
     if (isEmpty(lname)) {
       setError("err-reg-lname", "Required.");
       valid = false;
-    } else if (lname.length > 150) {
-      setError("err-reg-lname", "Must not exceed 150 characters.");
+    } else if (lname.length > REG_NAME_MAX_LENGTH) {
+      setError("err-reg-lname", "Must not exceed 25 characters.");
       valid = false;
     } else if (!isValidName(lname)) {
       setError("err-reg-lname", "Use letters and basic name symbols only.");
@@ -354,7 +379,7 @@ function setupStepOneValidation() {
     } else if (!isValidEmail(email)) {
       setError("err-reg-email", "Enter a valid email address.");
       valid = false;
-    } else if (email.length > 254) {
+    } else if (email.length > REG_EMAIL_MAX_LENGTH) {
       setError("err-reg-email", "Email is too long.");
       valid = false;
     } else {
@@ -460,15 +485,24 @@ function setupRegistrationSubmission() {
   regNext2.addEventListener("click", async () => {
     hideBanner("reg-banner");
 
-    const firstName = document.getElementById("reg-fname").value.trim();
-    const lastName = document.getElementById("reg-lname").value.trim();
-    const email = document.getElementById("reg-email").value.trim();
+    const firstNameInput = document.getElementById("reg-fname");
+    const lastNameInput = document.getElementById("reg-lname");
+    const emailInput = document.getElementById("reg-email");
+    const schoolInput = document.getElementById("reg-school-name");
+    const firstName = trimToLength(firstNameInput.value, REG_NAME_MAX_LENGTH).trim();
+    const lastName = trimToLength(lastNameInput.value, REG_NAME_MAX_LENGTH).trim();
+    const email = trimToLength(emailInput.value, REG_EMAIL_MAX_LENGTH).trim();
     const password = document.getElementById("reg-password").value;
     const confirmPassword = document.getElementById("reg-confirm").value;
-    const school = document.getElementById("reg-school-name").value.trim();
-    const yearStart = parseInt(document.getElementById("reg-year-start").value, 10);
-    const yearEnd = parseInt(document.getElementById("reg-year-end").value, 10);
-    const semester = document.getElementById("reg-semester").value;
+    const school = trimToLength(schoolInput.value, REG_SCHOOL_MAX_LENGTH).trim();
+    firstNameInput.value = firstName;
+    lastNameInput.value = lastName;
+    emailInput.value = email;
+    schoolInput.value = school;
+    const yearStartRaw = document.getElementById("reg-year-start").value.trim();
+    const yearEndRaw = document.getElementById("reg-year-end").value.trim();
+    const yearStart = parseInt(yearStartRaw, 10);
+    const yearEnd = parseInt(yearEndRaw, 10);
     const grading = document.getElementById("reg-grading").value;
 
     let valid = true;
@@ -478,8 +512,8 @@ function setupRegistrationSubmission() {
     if (isEmpty(school)) {
       setError("err-reg-school", "School name is required.");
       valid = false;
-    } else if (school.length > 200) {
-      setError("err-reg-school", "Must not exceed 200 characters.");
+    } else if (school.length > REG_SCHOOL_MAX_LENGTH) {
+      setError("err-reg-school", "Must not exceed 50 characters.");
       valid = false;
     } else {
       clearError("err-reg-school");
@@ -488,8 +522,8 @@ function setupRegistrationSubmission() {
     if (isEmpty(firstName)) {
       setError("err-reg-fname", "First name is required.");
       valid = false;
-    } else if (firstName.length > 150) {
-      setError("err-reg-fname", "Must not exceed 150 characters.");
+    } else if (firstName.length > REG_NAME_MAX_LENGTH) {
+      setError("err-reg-fname", "Must not exceed 25 characters.");
       valid = false;
     } else if (!isValidName(firstName)) {
       setError("err-reg-fname", "Use letters and basic name symbols only.");
@@ -499,8 +533,8 @@ function setupRegistrationSubmission() {
     if (isEmpty(lastName)) {
       setError("err-reg-lname", "Last name is required.");
       valid = false;
-    } else if (lastName.length > 150) {
-      setError("err-reg-lname", "Must not exceed 150 characters.");
+    } else if (lastName.length > REG_NAME_MAX_LENGTH) {
+      setError("err-reg-lname", "Must not exceed 25 characters.");
       valid = false;
     } else if (!isValidName(lastName)) {
       setError("err-reg-lname", "Use letters and basic name symbols only.");
@@ -513,7 +547,7 @@ function setupRegistrationSubmission() {
     } else if (!isValidEmail(email)) {
       setError("err-reg-email", "Enter a valid email address.");
       valid = false;
-    } else if (email.length > 254) {
+    } else if (email.length > REG_EMAIL_MAX_LENGTH) {
       setError("err-reg-email", "Email is too long.");
       valid = false;
     }
@@ -531,25 +565,21 @@ function setupRegistrationSubmission() {
       valid = false;
     }
 
-    if (!yearStart || yearStart < 2000) {
-      setError("err-reg-year-start", "Enter a valid year.");
+    if (!/^\d{4}$/.test(yearStartRaw)) {
+      setError("err-reg-year-start", "Enter a 4-digit year.");
       valid = false;
     } else {
       clearError("err-reg-year-start");
     }
 
-    if (!yearEnd || yearEnd <= yearStart) {
+    if (!/^\d{4}$/.test(yearEndRaw)) {
+      setError("err-reg-year-end", "Enter a 4-digit year.");
+      valid = false;
+    } else if (yearEnd <= yearStart) {
       setError("err-reg-year-end", "Must be after start year.");
       valid = false;
     } else {
       clearError("err-reg-year-end");
-    }
-
-    if (!semester) {
-      setError("err-reg-sem", "Select a semester.");
-      valid = false;
-    } else {
-      clearError("err-reg-sem");
     }
 
     if (!valid) return;
@@ -572,7 +602,6 @@ function setupRegistrationSubmission() {
           school_name: school,
           year_start: yearStart,
           year_end: yearEnd,
-          semester,
           grading,
         }),
       });
@@ -643,7 +672,27 @@ async function init() {
   attachLiveClear("reg-school-name", "err-reg-school");
   attachLiveClear("reg-year-start", "err-reg-year-start");
   attachLiveClear("reg-year-end", "err-reg-year-end");
-  attachLiveClear("reg-semester", "err-reg-sem");
+  ["reg-year-start", "reg-year-end"].forEach(inputId => {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      const next = normalizeSchoolYearInput(el.value);
+      if (el.value !== next) el.value = next;
+    });
+  });
+  [
+    { id: "reg-fname", max: REG_NAME_MAX_LENGTH },
+    { id: "reg-lname", max: REG_NAME_MAX_LENGTH },
+    { id: "reg-email", max: REG_EMAIL_MAX_LENGTH },
+    { id: "reg-school-name", max: REG_SCHOOL_MAX_LENGTH },
+  ].forEach(({ id, max }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      const next = trimToLength(el.value, max);
+      if (el.value !== next) el.value = next;
+    });
+  });
 
   setupBackForwardProtection();
 

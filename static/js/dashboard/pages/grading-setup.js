@@ -18,6 +18,9 @@
     "Practical Exam",
     "Final Exam",
   ];
+  const TEMPLATE_NAME_MAX_LENGTH = 25;
+  const TEMPLATE_DESCRIPTION_MAX_LENGTH = 50;
+  const COMPONENT_NAME_MAX_LENGTH = 25;
 
   let accessToken = null;
   let refreshPromise = null;
@@ -32,6 +35,22 @@
 
   function getEl(id) {
     return document.getElementById(id);
+  }
+
+  function trimToLength(value, maxLength) {
+    return String(value || "").slice(0, maxLength);
+  }
+
+  function normalizeTemplateName(value) {
+    return trimToLength(value, TEMPLATE_NAME_MAX_LENGTH);
+  }
+
+  function normalizeTemplateDescription(value) {
+    return trimToLength(value, TEMPLATE_DESCRIPTION_MAX_LENGTH);
+  }
+
+  function normalizeComponentName(value) {
+    return trimToLength(value, COMPONENT_NAME_MAX_LENGTH);
   }
 
   function getRefreshToken() {
@@ -164,6 +183,23 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#39;");
+  }
+
+  function normalizeWeightInput(value) {
+    let next = String(value || "").replace(/[^\d.]/g, "");
+    const parts = next.split(".");
+    const whole = (parts.shift() || "").slice(0, 2);
+    const decimal = parts.join("").slice(0, 2);
+    if (!next.includes(".")) return whole;
+    return `${whole || "0"}.${decimal}`;
+  }
+
+  function formatWeightInputValue(value) {
+    const normalized = normalizeWeightInput(value);
+    if (!normalized) return "";
+    const numeric = Number(normalized);
+    if (!Number.isFinite(numeric)) return "";
+    return numeric.toFixed(2);
   }
 
   function showFeedback(message, isError = false) {
@@ -351,8 +387,8 @@
     const rawName = String(component.name || component.type || "").trim();
     const matched = COMPONENT_OPTIONS.find(item => item.toLowerCase() === rawName.toLowerCase());
     const selected = matched || CUSTOM_COMPONENT_VALUE;
-    const customValue = matched ? "" : rawName;
-    const weightValue = component.weight != null ? String(component.weight) : "";
+    const customValue = matched ? "" : normalizeComponentName(rawName);
+    const weightValue = component.weight != null ? Number(component.weight).toFixed(2) : "";
 
     state.rowCounter += 1;
     const row = document.createElement("div");
@@ -362,9 +398,9 @@
       <select class="gs-component-type">${buildTypeOptions(selected)}</select>
       <input type="text" class="gs-component-custom" placeholder="Custom component name" value="${escapeHtml(
         customValue
-      )}" ${selected === CUSTOM_COMPONENT_VALUE ? "" : "hidden"}>
+      )}" maxlength="25" ${selected === CUSTOM_COMPONENT_VALUE ? "" : "hidden"}>
       <div class="weight-input">
-        <input type="number" class="gs-component-weight mono" min="0.01" max="100" step="0.01" value="${escapeHtml(
+        <input type="text" class="gs-component-weight mono" inputmode="decimal" pattern="[0-9]{1,2}([.][0-9]{0,2})?" maxlength="5" autocomplete="off" value="${escapeHtml(
           weightValue
         )}">
         <span>%</span>
@@ -415,12 +451,22 @@
   }
 
   function collectTemplatePayload() {
-    const name = String((getEl("grading-template-name-input") || {}).value || "").trim();
-    const description = String((getEl("grading-template-description-input") || {}).value || "").trim();
+    const nameInput = getEl("grading-template-name-input");
+    const descriptionInput = getEl("grading-template-description-input");
+    const name = normalizeTemplateName(String((nameInput || {}).value || "").trim());
+    const description = normalizeTemplateDescription(String((descriptionInput || {}).value || "").trim());
+    if (nameInput) nameInput.value = name;
+    if (descriptionInput) descriptionInput.value = description;
     const rows = [...document.querySelectorAll("#grading-template-components-list .gs-component-row")];
 
     if (!name) {
       throw new Error("Template name is required.");
+    }
+    if (name.length > TEMPLATE_NAME_MAX_LENGTH) {
+      throw new Error("Template name must be at most 25 characters.");
+    }
+    if (description.length > TEMPLATE_DESCRIPTION_MAX_LENGTH) {
+      throw new Error("Description must be at most 50 characters.");
     }
     if (!rows.length) {
       throw new Error("Please add at least one component.");
@@ -429,9 +475,14 @@
     const seen = new Set();
     let total = 0;
     const components = rows.map((row, index) => {
-      const componentName = getComponentNameFromRow(row);
+      const customInput = row.querySelector(".gs-component-custom");
+      const componentName = normalizeComponentName(getComponentNameFromRow(row));
+      if (customInput) customInput.value = normalizeComponentName(customInput.value);
       if (!componentName) {
         throw new Error("Component name is required.");
+      }
+      if (componentName.length > COMPONENT_NAME_MAX_LENGTH) {
+        throw new Error("Component name must be at most 25 characters.");
       }
 
       const key = componentName.toLowerCase();
@@ -441,7 +492,11 @@
       seen.add(key);
 
       const weightInput = row.querySelector(".gs-component-weight");
-      const weight = Number(String(weightInput ? weightInput.value : "").trim());
+      const weightRaw = String(weightInput ? weightInput.value : "").trim();
+      if (!/^\d{1,2}(\.\d{1,2})?$/.test(weightRaw)) {
+        throw new Error("Component weight must be in 00.00 format.");
+      }
+      const weight = Number(weightRaw);
       if (!Number.isFinite(weight) || weight <= 0) {
         throw new Error("Component weight must be greater than 0.");
       }
@@ -493,8 +548,8 @@
 
     state.editingTemplateId = id;
     getEl("grading-template-modal-title").textContent = "Edit Grading Template";
-    getEl("grading-template-name-input").value = template.name || "";
-    getEl("grading-template-description-input").value = template.description || "";
+    getEl("grading-template-name-input").value = normalizeTemplateName(template.name || "");
+    getEl("grading-template-description-input").value = normalizeTemplateDescription(template.description || "");
     showModalError("grading-template-modal-error", "");
     clearComponentRows();
 
@@ -640,13 +695,38 @@
     });
 
     document.addEventListener("input", event => {
+      if (event.target.id === "grading-template-name-input") {
+        const next = normalizeTemplateName(event.target.value);
+        if (event.target.value !== next) event.target.value = next;
+        return;
+      }
+      if (event.target.id === "grading-template-description-input") {
+        const next = normalizeTemplateDescription(event.target.value);
+        if (event.target.value !== next) event.target.value = next;
+        return;
+      }
       if (
         event.target.classList.contains("gs-component-weight")
         || event.target.classList.contains("gs-component-custom")
       ) {
+        if (event.target.classList.contains("gs-component-weight")) {
+          const next = normalizeWeightInput(event.target.value);
+          if (event.target.value !== next) event.target.value = next;
+        }
+        if (event.target.classList.contains("gs-component-custom")) {
+          const next = normalizeComponentName(event.target.value);
+          if (event.target.value !== next) event.target.value = next;
+        }
         updateTotalAndSaveState();
       }
     });
+
+    document.addEventListener("blur", event => {
+      if (!event.target.classList.contains("gs-component-weight")) return;
+      const next = formatWeightInputValue(event.target.value);
+      if (event.target.value !== next) event.target.value = next;
+      updateTotalAndSaveState();
+    }, true);
   }
 
   async function initGradingSetup() {

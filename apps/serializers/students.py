@@ -17,6 +17,10 @@ from apps.services.students_service import (
 
 
 class SubjectSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(max_length=10)
+    name = serializers.CharField(max_length=25)
+    units = serializers.IntegerField(required=False, default=1)
+
     class Meta:
         model = Subject
         fields = ["id", "code", "name", "units"]
@@ -42,7 +46,7 @@ class SubjectSerializer(serializers.ModelSerializer):
         if not name:
             raise serializers.ValidationError({"name": "Subject name is required."})
         if units is None:
-            raise serializers.ValidationError({"units": "Units is required."})
+            units = 1
         if units <= 0:
             raise serializers.ValidationError({"units": "Units must be greater than 0."})
 
@@ -54,6 +58,7 @@ class SubjectSerializer(serializers.ModelSerializer):
 
         attrs["code"] = code
         attrs["name"] = name
+        attrs["units"] = units
         return attrs
 
     def create(self, validated_data):
@@ -64,6 +69,7 @@ class SubjectSerializer(serializers.ModelSerializer):
 
 
 class SectionSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=25)
     school_year_sem_label = serializers.SerializerMethodField()
 
     class Meta:
@@ -91,9 +97,7 @@ class SectionSerializer(serializers.ModelSerializer):
     def get_school_year_sem_label(self, obj):
         if not obj.school_year_sem_id:
             return ""
-        school_year = obj.school_year_sem.school_year.name
-        semester = obj.school_year_sem.semester.name
-        return f"{school_year} - {semester}"
+        return obj.school_year_sem.school_year.name
 
     def validate(self, attrs):
         instance = self.instance
@@ -112,6 +116,10 @@ class SectionSerializer(serializers.ModelSerializer):
         if year_level <= 0:
             raise serializers.ValidationError(
                 {"year_level": "Year level must be greater than 0."}
+            )
+        if year_level > 12:
+            raise serializers.ValidationError(
+                {"year_level": "Year level must not exceed 12."}
             )
         if school_year_sem is None:
             raise serializers.ValidationError(
@@ -188,9 +196,7 @@ class StudentSerializer(serializers.ModelSerializer):
     def get_section_school_year_sem_label(self, obj):
         if not obj.section_id or not obj.section.school_year_sem_id:
             return ""
-        school_year = obj.section.school_year_sem.school_year.name
-        semester = obj.section.school_year_sem.semester.name
-        return f"{school_year} - {semester}"
+        return obj.section.school_year_sem.school_year.name
 
     def get_average_grade(self, _obj):
         return "--"
@@ -224,6 +230,8 @@ class StudentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"section": "Please select a section."})
         if effective_year_level is not None and effective_year_level <= 0:
             raise serializers.ValidationError({"year_level": "Year level must be greater than 0."})
+        if effective_year_level is not None and effective_year_level > 12:
+            raise serializers.ValidationError({"year_level": "Year level must not exceed 12."})
 
         validate_student_id_unique(student_id, exclude_id=instance.id if instance else None)
         validate_student_section_owner(request.user, section)

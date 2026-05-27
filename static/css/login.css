@@ -303,6 +303,10 @@ input::placeholder { color: var(--text-3); }
   font-size: 13px;
 }
 
+.form-error-banner[hidden] {
+  display: none !important;
+}
+
 /* ── BUTTONS ── */
 .btn {
   display: inline-flex;

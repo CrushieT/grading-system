@@ -188,10 +188,8 @@
     if (modal) modal.hidden = true;
   }
 
-  function formatUnits(units) {
-    const value = Number(units);
-    if (Number.isNaN(value)) return String(units || "");
-    return Number.isInteger(value) ? String(value) : value.toFixed(2);
+  function normalizeFieldLength(value, maxLength) {
+    return String(value || "").slice(0, maxLength);
   }
 
   function renderSubjects() {
@@ -212,7 +210,6 @@
         <div class="setup-item">
           <div>
             <div class="setup-label">${item.code} - ${item.name}</div>
-            <div class="setup-sub">Units: ${formatUnits(item.units)}</div>
           </div>
           <div class="setup-actions">
             <button type="button" class="icon-btn" data-action="ss-edit-subject" data-id="${item.id}">Edit</button>
@@ -241,7 +238,7 @@
         <div class="setup-item">
           <div>
             <div class="setup-label">${item.name}</div>
-            <div class="setup-sub">Year ${item.year_level} - ${item.school_year_sem_label || "No school term"}</div>
+            <div class="setup-sub">Year ${item.year_level} - ${item.school_year_sem_label || "No school year"}</div>
           </div>
           <div class="setup-actions">
             <button type="button" class="icon-btn" data-action="ss-edit-section" data-id="${item.id}">Edit</button>
@@ -257,10 +254,10 @@
     if (!select) return;
 
     const options = state.schoolYearSemesters
-      .map(item => `<option value="${item.id}">${item.school_year_name} - ${item.semester_name}</option>`)
+      .map(item => `<option value="${item.id}">${item.school_year_name}</option>`)
       .join("");
 
-    select.innerHTML = `<option value="">Select school year / semester</option>${options}`;
+    select.innerHTML = `<option value="">Select school year</option>${options}`;
   }
 
   async function fetchList(url, failureMessage) {
@@ -275,11 +272,11 @@
   async function loadSchoolYearSemesters() {
     const select = getEl("section-school-year-sem-input");
     if (select) {
-      select.innerHTML = `<option value="">Loading school terms...</option>`;
+      select.innerHTML = `<option value="">Loading school years...</option>`;
     }
     state.schoolYearSemesters = await fetchList(
       "/api/school-year-semesters/",
-      "Failed to load school year semesters."
+      "Failed to load school years."
     );
     renderSchoolYearSemesterOptions();
   }
@@ -333,7 +330,6 @@
     getEl("subject-modal-title").textContent = "Add Subject";
     getEl("subject-code-input").value = "";
     getEl("subject-name-input").value = "";
-    getEl("subject-units-input").value = "";
     showModalError("subject-modal-error", "");
   }
 
@@ -373,7 +369,6 @@
     getEl("subject-modal-title").textContent = "Edit Subject";
     getEl("subject-code-input").value = subject.code || "";
     getEl("subject-name-input").value = subject.name || "";
-    getEl("subject-units-input").value = subject.units || "";
     openModal("modal-subject-manage");
   }
 
@@ -404,22 +399,25 @@
   async function saveSubject() {
     const code = String(getEl("subject-code-input").value || "").trim();
     const name = String(getEl("subject-name-input").value || "").trim();
-    const units = Number(getEl("subject-units-input").value);
 
     if (!code) {
       showModalError("subject-modal-error", "Subject code is required.");
+      return;
+    }
+    if (code.length > 10) {
+      showModalError("subject-modal-error", "Subject code must not exceed 10 characters.");
       return;
     }
     if (!name) {
       showModalError("subject-modal-error", "Subject name is required.");
       return;
     }
-    if (Number.isNaN(units) || units <= 0) {
-      showModalError("subject-modal-error", "Units must be greater than 0.");
+    if (name.length > 25) {
+      showModalError("subject-modal-error", "Subject name must not exceed 25 characters.");
       return;
     }
 
-    const payload = { code, name, units };
+    const payload = { code, name };
     const isEditing = !!state.editingSubjectId;
     const url = isEditing ? `/api/subjects/${state.editingSubjectId}/` : "/api/subjects/";
     const method = isEditing ? "PATCH" : "POST";
@@ -444,12 +442,20 @@
       showModalError("section-modal-error", "Section name is required.");
       return;
     }
+    if (name.length > 25) {
+      showModalError("section-modal-error", "Section name must not exceed 25 characters.");
+      return;
+    }
     if (Number.isNaN(yearLevel) || yearLevel <= 0) {
       showModalError("section-modal-error", "Year level must be greater than 0.");
       return;
     }
+    if (yearLevel > 12) {
+      showModalError("section-modal-error", "Year level must not exceed 12.");
+      return;
+    }
     if (!schoolYearSem || Number.isNaN(schoolYearSem)) {
-      showModalError("section-modal-error", "Please select a school year semester.");
+      showModalError("section-modal-error", "Please select a school year.");
       return;
     }
 
@@ -533,6 +539,32 @@
   async function initSubjectsSections() {
     const page = getEl("page-schedules");
     if (!page) return;
+
+    [
+      ["subject-code-input", 10],
+      ["subject-name-input", 25],
+      ["section-name-input", 25],
+    ].forEach(([inputId, maxLength]) => {
+      const input = getEl(inputId);
+      if (!input) return;
+      input.addEventListener("input", () => {
+        const next = normalizeFieldLength(input.value, maxLength);
+        if (input.value !== next) input.value = next;
+      });
+    });
+
+    const sectionYearLevelInput = getEl("section-year-level-input");
+    if (sectionYearLevelInput) {
+      sectionYearLevelInput.addEventListener("input", () => {
+        const raw = String(sectionYearLevelInput.value || "").replace(/\D/g, "").slice(0, 2);
+        if (!raw) {
+          sectionYearLevelInput.value = "";
+          return;
+        }
+        const numeric = Number(raw);
+        sectionYearLevelInput.value = String(numeric > 12 ? 12 : numeric);
+      });
+    }
 
     document.addEventListener("click", event => {
       const actionEl = event.target.closest("[data-action]");

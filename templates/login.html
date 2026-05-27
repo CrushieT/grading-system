@@ -127,19 +127,19 @@
               <div class="form-row-2">
                 <div class="form-group">
                   <label for="reg-fname">First name</label>
-                  <input type="text" id="reg-fname" placeholder="Maria" autocomplete="given-name" maxlength="150">
+                  <input type="text" id="reg-fname" placeholder="Maria" autocomplete="given-name" maxlength="25">
                   <span class="field-error" id="err-reg-fname"></span>
                 </div>
                 <div class="form-group">
                   <label for="reg-lname">Last name</label>
-                  <input type="text" id="reg-lname" placeholder="Santos" autocomplete="family-name" maxlength="150">
+                  <input type="text" id="reg-lname" placeholder="Santos" autocomplete="family-name" maxlength="25">
                   <span class="field-error" id="err-reg-lname"></span>
                 </div>
               </div>
 
               <div class="form-group">
                 <label for="reg-email">Email address</label>
-                <input type="email" id="reg-email" placeholder="you@school.edu" autocomplete="email" maxlength="254" inputmode="email">
+                <input type="email" id="reg-email" placeholder="you@school.edu" autocomplete="email" maxlength="50" inputmode="email">
                 <span class="field-error" id="err-reg-email"></span>
               </div>
 
@@ -173,38 +173,27 @@
           <div id="reg-step-2" hidden>
             <div class="auth-card-header">
               <div class="auth-card-title">School setup</div>
-              <div class="auth-card-sub">Configure your first semester. You can change this later in School Setup.</div>
+              <div class="auth-card-sub">Configure your first school year. You can change this later in School Setup.</div>
             </div>
 
             <div class="auth-form">
               <div class="form-group">
                 <label for="reg-school-name">School / Institution name</label>
-                <input type="text" id="reg-school-name" placeholder="e.g. Naga City National High School" maxlength="200">
+                <input type="text" id="reg-school-name" placeholder="e.g. Naga City National High School" maxlength="50">
                 <span class="field-error" id="err-reg-school"></span>
               </div>
 
               <div class="form-row-2">
                 <div class="form-group">
                   <label for="reg-year-start">School year start</label>
-                  <input type="number" id="reg-year-start" placeholder="2024" min="2000" max="2100" step="1" inputmode="numeric">
+                  <input type="text" id="reg-year-start" placeholder="2024" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off">
                   <span class="field-error" id="err-reg-year-start"></span>
                 </div>
                 <div class="form-group">
                   <label for="reg-year-end">School year end</label>
-                  <input type="number" id="reg-year-end" placeholder="2025" min="2000" max="2100" step="1" inputmode="numeric">
+                  <input type="text" id="reg-year-end" placeholder="2025" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off">
                   <span class="field-error" id="err-reg-year-end"></span>
                 </div>
-              </div>
-
-              <div class="form-group">
-                <label for="reg-semester">Current semester</label>
-                <select id="reg-semester">
-                  <option value="">Select semester</option>
-                  <option value="1st">1st Semester</option>
-                  <option value="2nd">2nd Semester</option>
-                  <option value="summer">Summer</option>
-                </select>
-                <span class="field-error" id="err-reg-sem"></span>
               </div>
 
               <div class="form-group">

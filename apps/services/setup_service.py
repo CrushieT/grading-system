@@ -18,31 +18,33 @@ from apps.models import (
 
 SCHOOL_YEAR_NAME_PATTERN = re.compile(r"^\s*(\d{4})\s*-\s*(\d{4})\s*$")
 DEFAULT_GRADE_PERIODS = (
-    ("Prelim", 1, Decimal("25.00")),
-    ("Midterm", 2, Decimal("25.00")),
-    ("Prefinal", 3, Decimal("25.00")),
-    ("Final", 4, Decimal("25.00")),
+    ("1st Quarter", 1, Decimal("25.00")),
+    ("2nd Quarter", 2, Decimal("25.00")),
+    ("3rd Quarter", 3, Decimal("25.00")),
+    ("4th Quarter", 4, Decimal("25.00")),
 )
 GRADE_PROFILE_PERIOD_PRESETS = {
     "standard": (
-        ("Prelim", 1, Decimal("25.00")),
-        ("Midterm", 2, Decimal("25.00")),
-        ("Prefinal", 3, Decimal("25.00")),
-        ("Final", 4, Decimal("25.00")),
+        ("1st Quarter", 1, Decimal("25.00")),
+        ("2nd Quarter", 2, Decimal("25.00")),
+        ("3rd Quarter", 3, Decimal("25.00")),
+        ("4th Quarter", 4, Decimal("25.00")),
     ),
     "exam-heavy": (
-        ("Prelim", 1, Decimal("20.00")),
-        ("Midterm", 2, Decimal("20.00")),
-        ("Prefinal", 3, Decimal("25.00")),
-        ("Final", 4, Decimal("35.00")),
+        ("1st Quarter", 1, Decimal("20.00")),
+        ("2nd Quarter", 2, Decimal("20.00")),
+        ("3rd Quarter", 3, Decimal("25.00")),
+        ("4th Quarter", 4, Decimal("35.00")),
     ),
     "activity": (
-        ("Prelim", 1, Decimal("30.00")),
-        ("Midterm", 2, Decimal("30.00")),
-        ("Prefinal", 3, Decimal("20.00")),
-        ("Final", 4, Decimal("20.00")),
+        ("1st Quarter", 1, Decimal("30.00")),
+        ("2nd Quarter", 2, Decimal("30.00")),
+        ("3rd Quarter", 3, Decimal("20.00")),
+        ("4th Quarter", 4, Decimal("20.00")),
     ),
 }
+
+DEFAULT_SCHOOL_TERM_NAME = "Full School Year"
 
 def get_grade_period_queryset(user):
     return Period.objects.filter(
@@ -111,6 +113,53 @@ def get_semester_active_link(semester):
     )
 
 
+def get_or_create_default_semester_for_user(user):
+    semester = Semester.objects.filter(user=user).order_by("id").first()
+    if semester is not None:
+        return semester
+    return Semester.objects.create(user=user, name=DEFAULT_SCHOOL_TERM_NAME)
+
+
+def ensure_school_year_semester_link(user, school_year, is_active=False):
+    relation = (
+        SchoolYearSemester.objects.select_related("school_year", "semester")
+        .filter(school_year=school_year, semester__user=user)
+        .order_by("id")
+        .first()
+    )
+    if relation is None:
+        semester = get_or_create_default_semester_for_user(user)
+        relation = SchoolYearSemester.objects.create(
+            school_year=school_year,
+            semester=semester,
+            is_active=False,
+        )
+
+    if is_active and not relation.is_active:
+        activate_school_year_semester(user, relation)
+    return relation
+
+
+def ensure_school_year_semesters_for_user(user):
+    semester = get_or_create_default_semester_for_user(user)
+    relations = []
+    for school_year in SchoolYear.objects.filter(user=user).order_by("id"):
+        relation = (
+            SchoolYearSemester.objects.select_related("school_year", "semester")
+            .filter(school_year=school_year, semester__user=user)
+            .order_by("id")
+            .first()
+        )
+        if relation is None:
+            relation = SchoolYearSemester.objects.create(
+                school_year=school_year,
+                semester=semester,
+                is_active=False,
+            )
+        relations.append(relation)
+    return relations
+
+
 def _deactivate_all_school_year_semesters(user):
     SchoolYearSemester.objects.filter(school_year__user=user).update(is_active=False)
 
@@ -142,14 +191,9 @@ def activate_school_year(user, school_year, preferred_semester_id=None):
         relation = relation_qs.first()
 
     if relation is None:
-        fallback_semester = Semester.objects.filter(user=user).order_by("id").first()
-        if fallback_semester is None:
-            raise serializers.ValidationError(
-                {"set_active": "Create a semester first before activating a school year."}
-            )
-        relation = SchoolYearSemester.objects.create(
+        relation = ensure_school_year_semester_link(
+            user=user,
             school_year=school_year,
-            semester=fallback_semester,
             is_active=False,
         )
 
@@ -178,7 +222,7 @@ def ensure_schedule_term_is_active(schedule):
         return
     if not schedule.school_year_semester.is_active:
         raise serializers.ValidationError(
-            {"detail": "This schedule belongs to an inactive semester and cannot be modified."}
+            {"detail": "This schedule belongs to an inactive school term and cannot be modified."}
         )
 
 

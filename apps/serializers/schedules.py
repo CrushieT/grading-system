@@ -19,6 +19,8 @@ from apps.services.setup_service import ensure_schedule_term_is_active
 
 
 class PeriodSlotSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=25)
+
     class Meta:
         model = Period
         fields = ["id", "name", "time_start", "time_end"]
@@ -160,7 +162,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
         return f"{start}-{end}"
 
     def get_school_year_sem_display(self, obj):
-        return f"{obj.school_year_semester.school_year.name}, {obj.school_year_semester.semester.name}"
+        return obj.school_year_semester.school_year.name
 
     def get_period_display(self, obj):
         if not obj.period_id:
@@ -203,11 +205,11 @@ class ScheduleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"section": "Please select a section."})
         if school_year_semester is None:
             raise serializers.ValidationError(
-                {"school_year_sem": "Please select a school year semester."}
+                {"school_year_sem": "Please select a school term."}
             )
         if not school_year_semester.is_active:
             raise serializers.ValidationError(
-                {"school_year_sem": "This school year semester is inactive and cannot be modified."}
+                {"school_year_sem": "This school term is inactive and cannot be modified."}
             )
         if not day:
             raise serializers.ValidationError({"day": "Please select a day."})

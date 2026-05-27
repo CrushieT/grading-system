@@ -43,7 +43,6 @@ class RegisterSerializer(serializers.Serializer):
     school_name = serializers.CharField(max_length=200)
     year_start = serializers.IntegerField(min_value=2000, max_value=2100)
     year_end = serializers.IntegerField(min_value=2001, max_value=2101)
-    semester = serializers.ChoiceField(choices=["1st", "2nd", "summer"])
     grading = serializers.ChoiceField(choices=["standard", "exam-heavy", "activity"])
 
     def validate(self, attrs):
