@@ -308,28 +308,27 @@ def get_weighted_average_rows(user, schedule_id, remarks=None):
     for enrollment in enrollments:
         student = enrollment.student
         weighted_total = Decimal("0.00")
-        used_weight_total = Decimal("0.00")
+        has_missing_or_incomplete = False
 
         period_grades = {}
         for period in periods:
             rec = rec_map.get((student.id, period.id))
             if rec is None or rec.final_grade is None:
                 period_grades[period.id] = None
+                has_missing_or_incomplete = True
                 continue
             period_grades[period.id] = float(rec.final_grade)
             if str(rec.remarks or "").strip().lower() == "incomplete":
-                # Softer rule: ignore incomplete periods instead of forcing overall incomplete.
+                has_missing_or_incomplete = True
                 continue
             weight = period_weights[period.id]
             weighted_total += (_safe_decimal(rec.final_grade) * weight) / Decimal("100.00")
-            used_weight_total += weight
 
-        if used_weight_total <= Decimal("0.00"):
-            overall = 0.0
+        overall_decimal = weighted_total.quantize(Decimal("0.01"))
+        overall = float(overall_decimal)
+        if has_missing_or_incomplete:
             overall_remarks = "Incomplete"
         else:
-            normalized = (weighted_total / used_weight_total) * Decimal("100.00")
-            overall = float(normalized.quantize(Decimal("0.01")))
             overall_remarks = "Passed" if overall >= 75 else "Failed"
 
         if remarks and str(remarks).strip():
