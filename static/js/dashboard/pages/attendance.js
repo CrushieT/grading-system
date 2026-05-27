@@ -200,6 +200,13 @@
     return new Date(year, month - 1, day);
   }
 
+  function toIsoLocalDate(dateObj) {
+    if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return "";
+    const local = new Date(dateObj.getTime());
+    local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+    return local.toISOString().slice(0, 10);
+  }
+
   function formatDateLabel(isoDate) {
     const parsed = parseIsoDate(isoDate);
     if (!parsed) return "Selected Date";
@@ -284,7 +291,7 @@
     return getOriginalStatus(studentId);
   }
 
-  function getPreviousRecords(studentId, limit = 2) {
+  function getPreviousRecords(studentId, limit = 1) {
     const seenDates = new Set();
     const sorted = getAttendanceForStudent(studentId)
       .filter(item => item.date && item.date !== state.selectedDate)
@@ -620,6 +627,17 @@
       saveAttendance();
       return;
     }
+    if (action === "at-prev-day" || action === "at-next-day") {
+      const current = parseIsoDate(state.selectedDate || todayIsoDate()) || new Date();
+      const delta = action === "at-prev-day" ? -1 : 1;
+      current.setDate(current.getDate() + delta);
+      state.selectedDate = toIsoLocalDate(current);
+      const dateInput = getEl("attendance-date-filter");
+      if (dateInput) dateInput.value = state.selectedDate;
+      updateDateHeader();
+      loadAttendanceData();
+      return;
+    }
 
     if (action === "at-set-status") {
       if (!state.selectedSchedule) {
@@ -651,6 +669,7 @@
     if (dateInput) {
       dateInput.addEventListener("change", () => {
         state.selectedDate = String(dateInput.value || "");
+        updateDateHeader();
         loadAttendanceData();
       });
     }
