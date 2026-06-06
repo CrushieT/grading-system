@@ -3,7 +3,11 @@
 ## Project Overview
 EduTrack is a teacher-focused academic operations platform built with Django and Django REST Framework. It centralizes attendance tracking, assessment management, grade computation, student enrollment, and academic reporting behind an API-driven backend, with a lightweight Django-template frontend for day-to-day use.
 
-This repository is positioned as a serious backend portfolio project: it demonstrates authentication, authorization, relational database design, service-layer business logic, workflow validation, and REST API design in a real-world education domain. Within my portfolio, **BloodPlus is my primary project**, while **EduTrack serves as a strong secondary project that showcases backend engineering in a different product space**.
+This repository is positioned as a serious backend portfolio project: it demonstrates authentication, authorization, relational database design, service-layer business logic, workflow validation, and REST API design in a real-world education domain.
+
+## Architecture Pattern
+
+EduTrack follows a layered architecture that separates request handling, validation, business logic, and persistence concerns. This keeps workflows maintainable and prevents business rules from being tightly coupled to API views.
 
 ## Why This Project Matters
 Academic systems are deceptively complex. Attendance, schedules, assessments, grade periods, and student records all depend on one another, and weak backend design quickly leads to inconsistent data. EduTrack matters because it models those relationships explicitly and enforces business rules such as:
@@ -14,17 +18,19 @@ Academic systems are deceptively complex. Attendance, schedules, assessments, gr
 - repeatable grade computation and report generation workflows
 
 ## Project Highlights
-- Built with **Django**, **Django REST Framework**, and **JWT-based API authentication**
-- Uses a **layered backend structure**: API views, serializers, services, models, and route modules
+- **JWT-based authentication and authorization** for protected academic workflows
+- **Attendance, grading, assessment, and academic record workflows** modeled around real classroom operations
+- **REST API architecture built with Django REST Framework** for modular domain endpoints
+- **Service-layer business logic and relational database design** that keeps workflow rules out of request handlers
 - Supports **teacher onboarding**, **password reset**, and authenticated account management
-- Handles **attendance**, **assessments**, **grade computation**, **student enrollment**, and **CSV exports**
+- Uses a **layered backend structure**: API views, serializers, services, models, and route modules
 - Encodes business rules in a dedicated **service layer** instead of scattering logic across views
 - Uses a relational schema designed for growth; the repo currently runs on **SQLite for development** and includes **`mysqlclient`** for MySQL-oriented deployment paths
 
 ## Tech Stack
 | Layer | Technology |
 | --- | --- |
-| Backend framework | Django 6 |
+| Backend framework | Django 6.0.3 |
 | API layer | Django REST Framework |
 | Authentication | `djangorestframework-simplejwt` |
 | Database | SQLite in local development, MySQL-ready dependency via `mysqlclient` |
@@ -33,15 +39,24 @@ Academic systems are deceptively complex. Attendance, schedules, assessments, gr
 | Runtime | Python 3.12+ |
 
 ## System Architecture
+EduTrack follows a layered architecture with separation of concerns across API views, serializers, services, and models.
+
+Its backend structure is inspired by common MVC-style service-layer patterns while staying idiomatic to Django. Responsibilities are split so request handling, validation, business logic, and persistence remain isolated and easier to maintain.
+
 ```text
 Browser UI
-  -> Django templates + static JavaScript
-  -> /api/* endpoints
-  -> DRF APIViews
-  -> Serializers for validation and response shaping
-  -> Services for business rules and workflow logic
-  -> Django ORM models
-  -> SQLite (current dev default) / MySQL-ready relational deployment path
+      ↓
+Django Templates / JavaScript
+      ↓
+DRF API Views
+      ↓
+Serializers (Validation)
+      ↓
+Services (Business Logic)
+      ↓
+Models (Domain Entities)
+      ↓
+Database
 ```
 
 The codebase is organized by domain and by responsibility. Route modules in `apps/urls/` expose clear API areas, serializers validate input and normalize output, and services contain the rules that keep academic workflows consistent.
@@ -88,7 +103,6 @@ The codebase is organized by domain and by responsibility. Route modules in `app
   - attendance summaries by schedule
   - class performance statistics by grade period
   - weighted averages across grading periods
-  - CSV export for grade records
 
 ## API and Backend Design
 EduTrack is intentionally API-driven. The backend is not just a page renderer with form handlers; it exposes domain-specific endpoints that support both the current UI and future client extensions.
@@ -188,11 +202,8 @@ If you want password reset emails to work locally, create a `.env` file and prov
 - Password reset requests return a generic success message, which helps reduce account-enumeration leakage.
 - The frontend auth flow keeps the access token out of long-term browser storage and relies on refresh-token-based session continuity.
 - Several write operations enforce ownership, active school term, and active grade-period checks before mutating data.
-- This repository is still **development-oriented** in its current checked-in form:
-  - `DEBUG=True`
-  - `ALLOWED_HOSTS = ['*']`
-  - SQLite is the default configured database
-  - MySQL is not yet wired through environment-based database settings in the current repo
+- This repository is currently configured with development-oriented defaults and should be hardened before production deployment.
+- Production readiness work would include stricter host and environment configuration, hardened secret management, tighter CORS and email settings, and a production database configuration strategy.
 
 ## Future Improvements
 - Move database configuration fully into environment variables and add first-class MySQL deployment settings
@@ -204,7 +215,6 @@ If you want password reset emails to work locally, create a `.env` file and prov
 
 ## Developer Information
 - **Project name:** EduTrack – Grading and Attendance Management System
-- **Portfolio role:** Secondary portfolio project, complementing **BloodPlus** as the primary showcase
 - **Primary focus:** backend architecture, API design, authentication, relational data modeling, and academic workflow management
 - **Repository:** `https://github.com/CrushieT/grading-system`
 - **Note:** Some interface text in the current implementation still uses the earlier working name **GradeDesk**
