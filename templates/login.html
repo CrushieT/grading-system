@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeDesk — Sign In</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  </head>
+  <body>
+
+    <!-- ═══════ BACKGROUND GRID ═══════ -->
+    <div class="bg-grid" aria-hidden="true"></div>
+
+    <!-- ═══════════════════════════════
+          PANEL WRAPPER
+         (slides between login / register)
+    ════════════════════════════════════ -->
+    <div class="auth-root">
+
+      <!-- ── LEFT BRAND COLUMN ── -->
+      <div class="brand-col">
+        <div class="brand-mark">
+          <div class="brand-icon-lg">
+            <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="1.5">
+              <rect x="2" y="2" width="12" height="12" rx="2"/>
+              <line x1="5" y1="6" x2="11" y2="6"/>
+              <line x1="5" y1="9" x2="9" y2="9"/>
+            </svg>
+          </div>
+          <div>
+            <div class="brand-name-lg">GradeDesk</div>
+            <div class="brand-tagline">Teacher Portal</div>
+          </div>
+        </div>
+
+        <div class="brand-body">
+          <p class="brand-headline">Your classroom,<br>beautifully organised.</p>
+          <p class="brand-desc">Schedules, grading, and attendance — all in one place built for teachers.</p>
+        </div>
+
+        <div class="brand-pills">
+          <span class="pill">Schedules</span>
+          <span class="pill">Grading</span>
+          <span class="pill">Attendance</span>
+          <span class="pill">Reports</span>
+        </div>
+      </div>
+
+      <!-- ── FORM COLUMN ── -->
+      <div class="form-col">
+
+        <!-- ════ LOGIN VIEW ════ -->
+        <div class="auth-card" id="view-login">
+          <div class="auth-card-header">
+            <div class="auth-card-title">Welcome back</div>
+            <div class="auth-card-sub">Sign in to your teacher account.</div>
+          </div>
+
+          <div class="auth-form" id="form-login">
+            <div class="form-group">
+              <label for="login-email">Email address</label>
+              <input type="email" id="login-email" placeholder="you@school.edu" autocomplete="username" maxlength="254" inputmode="email">
+              <span class="field-error" id="err-login-email"></span>
+            </div>
+
+            <div class="form-group">
+              <div class="label-row">
+                <label for="login-password">Password</label>
+                <button type="button" class="link-btn" id="forgot-btn">Forgot password?</button>
+              </div>
+              <div class="input-wrap">
+                <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" maxlength="128">
+                <button type="button" class="eye-btn" data-target="login-password" aria-label="Toggle password">
+                  <svg class="eye-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+                </button>
+              </div>
+              <span class="field-error" id="err-login-password"></span>
+            </div>
+
+            <button class="btn btn-primary btn-full" id="login-submit">
+              <span class="btn-label">Sign in</span>
+            </button>
+
+            <div class="form-error-banner" id="login-banner" hidden>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/></svg>
+              <span id="login-banner-msg">Invalid username/email or password.</span>
+            </div>
+          </div>
+
+          <div class="auth-footer">
+            <span class="auth-footer-text">First time here?</span>
+            <button type="button" class="link-btn" id="goto-register">Create an account →</button>
+          </div>
+        </div>
+
+        <!-- ════ REGISTER VIEW ════ -->
+        <div class="auth-card" id="view-register" hidden>
+
+          <!-- Step indicator -->
+          <div class="steps-bar">
+            <div class="step active" id="step-dot-1">
+              <div class="step-circle">1</div>
+              <div class="step-label">Account</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step-dot-2">
+              <div class="step-circle">2</div>
+              <div class="step-label">School</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step-dot-3">
+              <div class="step-circle">3</div>
+              <div class="step-label">Done</div>
+            </div>
+          </div>
+
+          <!-- ─── Step 1 — Account ─── -->
+          <div id="reg-step-1">
+            <div class="auth-card-header">
+              <div class="auth-card-title">Create your account</div>
+              <div class="auth-card-sub">Set up your teacher profile.</div>
+            </div>
+
+            <div class="auth-form">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="reg-fname">First name</label>
+                  <input type="text" id="reg-fname" placeholder="Maria" autocomplete="given-name" maxlength="25">
+                  <span class="field-error" id="err-reg-fname"></span>
+                </div>
+                <div class="form-group">
+                  <label for="reg-lname">Last name</label>
+                  <input type="text" id="reg-lname" placeholder="Santos" autocomplete="family-name" maxlength="25">
+                  <span class="field-error" id="err-reg-lname"></span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-email">Email address</label>
+                <input type="email" id="reg-email" placeholder="you@school.edu" autocomplete="email" maxlength="50" inputmode="email">
+                <span class="field-error" id="err-reg-email"></span>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-password">Password</label>
+                <div class="input-wrap">
+                  <input type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password" minlength="8" maxlength="128">
+                  <button type="button" class="eye-btn" data-target="reg-password" aria-label="Toggle password">
+                    <svg class="eye-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+                  </button>
+                </div>
+                <span class="field-error" id="err-reg-password"></span>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-confirm">Confirm password</label>
+                <div class="input-wrap">
+                  <input type="password" id="reg-confirm" placeholder="Repeat password" autocomplete="new-password" minlength="8" maxlength="128">
+                  <button type="button" class="eye-btn" data-target="reg-confirm" aria-label="Toggle password">
+                    <svg class="eye-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+                  </button>
+                </div>
+                <span class="field-error" id="err-reg-confirm"></span>
+              </div>
+
+              <button class="btn btn-primary btn-full" id="reg-next-1">Continue →</button>
+            </div>
+          </div>
+
+          <!-- ─── Step 2 — School Setup ─── -->
+          <div id="reg-step-2" hidden>
+            <div class="auth-card-header">
+              <div class="auth-card-title">School setup</div>
+              <div class="auth-card-sub">Configure your first school year. You can change this later in School Setup.</div>
+            </div>
+
+            <div class="auth-form">
+              <div class="form-group">
+                <label for="reg-school-name">School / Institution name</label>
+                <input type="text" id="reg-school-name" placeholder="e.g. Naga City National High School" maxlength="50">
+                <span class="field-error" id="err-reg-school"></span>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="reg-year-start">School year start</label>
+                  <input type="text" id="reg-year-start" placeholder="2024" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off">
+                  <span class="field-error" id="err-reg-year-start"></span>
+                </div>
+                <div class="form-group">
+                  <label for="reg-year-end">School year end</label>
+                  <input type="text" id="reg-year-end" placeholder="2025" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off">
+                  <span class="field-error" id="err-reg-year-end"></span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-grading">Default grading system</label>
+                <select id="reg-grading">
+                  <option value="standard">Standard — Quiz 30% · Activity 40% · Exam 30%</option>
+                  <option value="exam-heavy">Exam-Heavy — Quiz 20% · Activity 30% · Exam 50%</option>
+                  <option value="activity">Activity-Based — Quiz 20% · Activity 60% · Exam 20%</option>
+                </select>
+              </div>
+
+              <div class="btn-row">
+                <button class="btn btn-secondary" id="reg-back-1">← Back</button>
+                <button class="btn btn-primary" id="reg-next-2">
+                  <span class="btn-label">Finish setup</span>
+                </button>
+              </div>
+
+              <div class="form-error-banner" id="reg-banner" hidden>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/></svg>
+                <span id="reg-banner-msg">Something went wrong. Please try again.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Step 3 — Done ─── -->
+          <div id="reg-step-3" hidden>
+            <div class="success-block">
+              <div class="success-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="success-title">You're all set!</div>
+              <div class="success-sub" id="success-sub">Your account and school have been created.<br>You can now sign in.</div>
+              <button class="btn btn-primary btn-full" id="goto-login-final">Go to sign in →</button>
+            </div>
+          </div>
+
+          <div class="auth-footer" id="reg-footer">
+            <span class="auth-footer-text">Already have an account?</span>
+            <button type="button" class="link-btn" id="goto-login">Sign in →</button>
+          </div>
+        </div>
+
+      </div><!-- /form-col -->
+    </div><!-- /auth-root -->
+
+    <div class="auth-modal-overlay" id="forgot-modal" hidden>
+      <div class="auth-modal">
+        <div class="auth-modal-header">
+          <div class="auth-modal-title">Reset Password</div>
+          <button type="button" class="close-btn" id="forgot-modal-close">x</button>
+        </div>
+        <div class="auth-modal-body">
+          <div class="form-group">
+            <label for="forgot-modal-email">Registered email</label>
+            <input type="email" id="forgot-modal-email" placeholder="you@school.edu" maxlength="50" inputmode="email" autocomplete="email">
+            <span class="field-error" id="err-forgot-modal-email"></span>
+          </div>
+        </div>
+        <div class="auth-modal-footer">
+          <button type="button" class="btn btn-secondary" id="forgot-modal-cancel">Cancel</button>
+          <button type="button" class="btn btn-primary" id="forgot-modal-send">Send Reset Link</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'js/login.js' %}" defer></script>
+  </body>
+</html>

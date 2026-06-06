@@ -1,0 +1,57 @@
+<section class="page" id="page-assessments">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Assessments</div>
+      <div class="page-sub">Quizzes, exams, and activities.</div>
+    </div>
+    <button type="button" class="btn btn-primary" data-action="as-open-create">+ New</button>
+  </div>
+
+  <div class="setup-feedback" id="assessments-feedback" hidden></div>
+
+  <div class="filter-bar">
+    <select class="filter-select" id="assessment-schedule-filter">
+      <option value="">Loading schedules...</option>
+    </select>
+    <select class="filter-select" id="assessment-grade-period-filter">
+      <option value="">All Grade Periods</option>
+    </select>
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9c9a94" stroke-width="1.5">
+        <circle cx="7" cy="7" r="4"></circle>
+        <line x1="10.5" y1="10.5" x2="14" y2="14"></line>
+      </svg>
+      <input type="text" id="assessment-search-input" placeholder="Search assessments...">
+    </div>
+  </div>
+
+  <article class="card desktop-table">
+    <div class="table-wrap scrollable-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Assessment</th>
+            <th>Component</th>
+            <th>Weight</th>
+            <th>Max</th>
+            <th>Date Given</th>
+            <th>Submitted</th>
+            <th>Avg</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="assessments-table-body">
+          <tr>
+            <td colspan="8" class="setup-sub">Loading assessments...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <div class="mobile-card-list" id="assessments-mobile-list">
+    <article class="m-card">
+      <div class="setup-sub">Loading assessments...</div>
+    </article>
+  </div>
+</section>
